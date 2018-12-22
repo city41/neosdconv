@@ -1,6 +1,6 @@
 {
   "name": "neosdconv",
-  "version": "0.0.4",
+  "version": "0.1.0",
   "description": "",
   "main": "lib/index.js",
   "preferGlobal": true,

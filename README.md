@@ -9,13 +9,10 @@ This tool has successfully converted:
 * League Bowling
 * Pulstar
 * My tiny little demo ROM
+* King of Fighters 94
+* Kizuna Encounter
 
-It has failed on:
-
-* King of Fighters 94: crashes back to the NeoSD menu
-* Kizuna Encounter: crashes back to the NeoSD menu
-
-No other games have been attempted yet
+No other games have been attempted yet, and many games will likely not work.
 
 ## How to Use
 
@@ -38,4 +35,6 @@ Just unzip the ROM into a directory, then use that directory as the input
 
 ## Goals
 
-The main purpose of this tool is for Neo Geo development. I might expand the tool to also be able to convert commercial ROMs, but that is low priority right now.
+The main purpose of this tool is for Neo Geo development.
+
+I might expand the tool to also be able to batch convert a set of commercial ROMs, but that is low priority right now.

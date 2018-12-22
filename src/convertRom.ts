@@ -7,6 +7,7 @@ type ConvertOptions = {
     year: number;
     manufacturer: string;
 };
+
 type ConvertCallback = (err: Error | null, resultingPath?: string) => void;
 type FilesInMemory = { [key: string]: Buffer };
 type FileTypes =
@@ -25,6 +26,14 @@ type FileTypes =
     | "c7"
     | "c8";
 
+/**
+ * Takes the various ROM files (p, m, c, etc) found in the specified directory
+ * and loads them into memory. The return result is an object with keys being the
+ * file names and the values being Buffers containing the binary data for that file
+ *
+ * @param {string} dir The directory to load the ROM files from
+ * @returns {FilesInMemory} an object containing the binary data of each file
+ */
 function loadFilesIntoMemory(dir: string): FilesInMemory {
     return fs.readdirSync(dir).reduce(
         (building, file) => {
@@ -44,6 +53,18 @@ function loadFilesIntoMemory(dir: string): FilesInMemory {
     );
 }
 
+/**
+ * Confirms whether the given file name matches the requested ROM type.
+ * So it will confirm if a file is say a C ROM based on the file name
+ *
+ * The currently supported formats:
+ * 1. <misc text>-<romType><number>.<romType><number>, ie "089-c1.c1"
+ * 2. <misc text>-<romType><number>.rom, ie "kof94_p1.rom"
+ *
+ * @param {string} fileName
+ * @param {FileTypes} fileType the type of file to check for, ie 'c' or 'p', etc
+ * @returns {boolean} true if the file is of the checked type
+ */
 function isFileOfType(
     fileName: string,
     fileType: FileTypes,
@@ -63,6 +84,14 @@ function isFileOfType(
     return matchesInNameWithRomExtension || matchesInNameWithRomTypeExtension;
 }
 
+/**
+ * Gets the total size of all of the ROMs of the requested type. So if 'c' was requested,
+ * This will add up the sizes of all the C ROMs in the game and return that
+ *
+ * @param {FilesInMemory} files a game loaded into memory
+ * @param {FileType} fileType the file type to check
+ * @returns {number} the size of all the ROMs that match the check
+ */
 function getSize(files: FilesInMemory, fileType: FileTypes): number {
     return Object.keys(files).reduce((buildingSize, fileName) => {
         if (isFileOfType(fileName, fileType)) {
@@ -74,6 +103,15 @@ function getSize(files: FilesInMemory, fileType: FileTypes): number {
     }, 0);
 }
 
+/**
+ * Gets all of the data of the specified type. So if 'v' is requested,
+ * this will return one Buffer with all of the V ROM data inside it, in order
+ * based on file name (ie v1, v2, v3, etc)
+ *
+ * @param {FilesInMemory} files a game loaded into memory
+ * @param {FileTypes} fileType the fileType to get the data for
+ * @returns {Buffer} a binary buffer of all the matching data
+ */
 function getData(
     files: FilesInMemory,
     fileType: FileTypes,
@@ -101,6 +139,16 @@ function getData(
     return Buffer.concat(buffers, size);
 }
 
+/**
+ * V ROMs can come in two flavors, either a v1/v2 combo, or a singular V section.
+ * League Bowling is an example of a game with a v1/v2 combo.
+ *
+ * This function figures out if the game is a v1/v2 or v style game, and returns the v1
+ * and v2 sizes accordingly (so if the game is v style, v2 will be zero)
+ *
+ * @param {FilesInMemory} files a game loaded into memory
+ * @returns {Object} an object containing v1 and v2 sizes
+ */
 function getVSizes(files: FilesInMemory) {
     const v2Size = getSize(files, "v2");
 
@@ -117,6 +165,13 @@ function getVSizes(files: FilesInMemory) {
     }
 }
 
+/**
+ * Returns a single Buffer containing all of the game's V ROM data.
+ * It will handle whether the game is a v1/v2 or v style game
+ *
+ * @param {FilesInMemory} files a game loaded into memory
+ * @returns {Buffer} the game's V ROM data
+ */
 function getVData(files: FilesInMemory): Buffer {
     const v2Data = getData(files, "v2");
     let v1Data = getData(files, "v1");
@@ -128,6 +183,16 @@ function getVData(files: FilesInMemory): Buffer {
     return Buffer.concat([v1Data, v2Data], v1Data.length + v2Data.length);
 }
 
+/**
+ * Takes a given buffer and interleaves its bytes, grabbing bytes from the first
+ * half then the second half of the buffer.
+ *
+ * This is used to interleave C ROM data, as the .neo format requires it to be interleaved
+ *
+ * @param {Buffer} twoBankBuffer the input buffer to interleave
+ * @param {number} [leafSize] how big the interleaves should be, default is 1 byte
+ * @returns {Buffer} the interleaved buffer
+ */
 function interleave(twoBankBuffer: Buffer, leafSize: number): Buffer {
     const interleavedBuffer = Buffer.alloc(twoBankBuffer.length);
     const halfLength = twoBankBuffer.length / 2;
@@ -147,6 +212,17 @@ function interleave(twoBankBuffer: Buffer, leafSize: number): Buffer {
     return interleavedBuffer;
 }
 
+/**
+ * Pulls all of the C ROM data out of the game and returns it in a single buffer
+ * that matches the format that is needed for .neo files. Each C ROM pair, ie c1/c2,
+ * c3/c4 need to be interleaved together.
+ *
+ * The resulting buffer will have bytes like
+ * c1, c2, c1, c2, c1, c2 ... , c3, c4, c3, c4, ...
+ *
+ * @param {FilesInMemory} files a game loaded into memory
+ * @returns {Buffer} a buffer containing all of the game's C ROM data
+ */
 function getCData(files: FilesInMemory): Buffer {
     const buffers = [];
     let totalSize = 0;
@@ -172,6 +248,53 @@ function getCData(files: FilesInMemory): Buffer {
     return Buffer.concat(buffers, totalSize);
 }
 
+const ONE_MEG = 0x100000;
+const TWO_MEGS = ONE_MEG * 2;
+
+/**
+ * Takes a buffer that is 2 megabytes in size and swaps the megabytes.
+ * This is required for large P ROMs, such as in King of Fighters 94. The Neo Geo
+ * can only address 1 meg of P ROM data at once, so the game will bank switch the two megs.
+ * It turns out the second meg needs to get written to the .neo file first.
+ *
+ * @param {Buffer} data the buffer to swap the megs on
+ * @returns {Buffer} a buffer with data's megs swapped
+ */
+function swapMegs(data: Buffer): Buffer {
+    debugger;
+    if (data.length !== TWO_MEGS) {
+        throw new Error("swapMegs: asked to swap something that is not 2mib");
+    }
+
+    const firstMeg = Buffer.from(data.buffer, 0, ONE_MEG);
+    const secondMeg = Buffer.from(data.buffer, ONE_MEG, ONE_MEG);
+
+    return Buffer.concat([secondMeg, firstMeg], TWO_MEGS);
+}
+
+/**
+ * Returns the P ROM data. If a P ROM is 2 megabytes, the megs need to be swapped,
+ * else just return the P ROM as-is.
+ *
+ * see: https://forums.terraonion.com/viewtopic.php?f=9&p=3342#p3342
+ *
+ * @param {FilesInMemory} files a game loaded into memory
+ * @returns {Buffer} the P ROM data for the game
+ */
+function getPData(files: FilesInMemory): Buffer {
+    let pData = getData(files, "p");
+
+    if (pData.length === TWO_MEGS) {
+        console.log("swapping P ROM megs");
+        pData = swapMegs(pData);
+    }
+
+    return pData;
+}
+
+/**
+ * The main orchestrator for building a .neo file.
+ */
 function buildNeoFile(options: ConvertOptions, files: FilesInMemory): Buffer {
     // NEO1 : uint8_t header1, header2, header3, version;
     const tag = Buffer.from([
@@ -189,9 +312,11 @@ function buildNeoFile(options: ConvertOptions, files: FilesInMemory): Buffer {
     // so first byte is from c1, second is from c2, etc
     const cData = getCData(files);
 
+    const pData = getPData(files);
+
     const sizes = Buffer.from(
         Uint32Array.from([
-            getSize(files, "p"),
+            pData.length,
             getSize(files, "s"),
             getSize(files, "m"),
             vSizes.v1,
@@ -238,7 +363,6 @@ function buildNeoFile(options: ConvertOptions, files: FilesInMemory): Buffer {
         4096
     );
 
-    const pData = getData(files, "p");
     const sData = getData(files, "s");
     const mData = getData(files, "m");
     const vData = getVData(files);
@@ -258,6 +382,15 @@ function buildNeoFile(options: ConvertOptions, files: FilesInMemory): Buffer {
     return neoFile;
 }
 
+/**
+ * External API entry point for converting a ROM from standard format
+ * to the .neo format
+ *
+ * @param {string} srcDir the directory to read the ROM files from
+ * @param {string} outPath the file to write the result to
+ * @param {ConvertOptions} options settings such as game name and year
+ * @param {ConvertCallback} callback called once the conversion is done
+ */
 export function convertRom(
     srcDir: string,
     outPath: string,

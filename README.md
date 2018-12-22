@@ -17,6 +17,8 @@ The input directory is a directory containing your game's raw P, S, M, V and C R
 
 The output path is something like `./mygame.neo`.
 
-For example: `neosdconv -i ./romFiles -u ./mygame.neo -n 'My Cool Game' -y 2018 -m city41`
+For example: `neosdconv -i ./romFiles -o ./mygame.neo -n 'My Cool Game' -y 2018 -m city41`
 
+## Goals
 
+The main purpose of this tool is for Neo Geo development. I might expand the tool to also be able to convert commercial ROMs, but that is low priority right now.

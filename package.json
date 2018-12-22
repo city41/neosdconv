@@ -3,8 +3,14 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "preferGlobal": true,
+  "bin": {
+    "neosdconv": "./lib/index.js"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "start": "ts-node ./src/index.ts"
   },
   "repository": {
     "type": "git",
@@ -15,5 +21,23 @@
   "bugs": {
     "url": "https://github.com/city41/neosdconv/issues"
   },
-  "homepage": "https://github.com/city41/neosdconv#readme"
+  "homepage": "https://github.com/city41/neosdconv#readme",
+  "dependencies": {
+    "commander": "^2.19.0",
+    "extract-zip": "^1.6.7",
+    "lodash": "^4.17.11",
+    "tmp": "0.0.33"
+  },
+  "devDependencies": {
+    "@types/commander": "^2.12.2",
+    "@types/extract-zip": "^1.6.2",
+    "@types/lodash": "^4.14.119",
+    "@types/node": "^10.12.18",
+    "@types/tmp": "0.0.33",
+    "husky": "^1.2.1",
+    "prettier": "^1.15.3",
+    "pretty-quick": "^1.8.0",
+    "ts-node": "^7.0.1",
+    "typescript": "^3.2.2"
+  }
 }

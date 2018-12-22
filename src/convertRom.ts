@@ -57,7 +57,7 @@ function isFileOfType(
     );
 
     const matchesInNameWithRomTypeExtension = !!lowerName.match(
-        new RegExp(`${fileType}${numberRegex}\\.${fileType}\${numberRegex}$`)
+        new RegExp(`${fileType}${numberRegex}\\.${fileType}${numberRegex}$`)
     );
 
     return matchesInNameWithRomExtension || matchesInNameWithRomTypeExtension;

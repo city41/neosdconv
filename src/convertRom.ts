@@ -70,16 +70,20 @@ function getData(files: FilesInMemory, fileType: FileTypes): Buffer {
     return Buffer.concat(buffers, size);
 }
 
-function interleave(twoBankBuffer: Buffer): Buffer {
+function interleave(twoBankBuffer: Buffer, leafSize: number): Buffer {
     const interleavedBuffer = Buffer.alloc(twoBankBuffer.length);
     const halfLength = twoBankBuffer.length / 2;
 
     let ilbi = 0;
 
-    for (let i = 0; i < halfLength; ++i) {
-        interleavedBuffer[ilbi] = twoBankBuffer[i];
-        interleavedBuffer[ilbi + 1] = twoBankBuffer[i + halfLength];
-        ilbi += 2;
+    for (let i = 0; i < halfLength; i += leafSize) {
+        for (let f = 0; f < leafSize; ++f) {
+            interleavedBuffer[ilbi] = twoBankBuffer[i + f];
+            interleavedBuffer[ilbi + leafSize] =
+                twoBankBuffer[i + halfLength + f];
+        }
+
+        ilbi += leafSize * 2;
     }
 
     return interleavedBuffer;
@@ -151,7 +155,7 @@ function buildNeoFile(options: ConvertOptions, files: FilesInMemory): Buffer {
 
     // the cdata needs to be interleaved
     // so first byte is from c1, second is from c2, etc
-    const cData = interleave(getData(files, "c"));
+    const cData = interleave(getData(files, "c"), 1);
 
     const neoFile = Buffer.concat(
         [header, pData, sData, mData, vData, cData],

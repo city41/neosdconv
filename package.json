@@ -1,0 +1,19 @@
+{
+  "name": "neosdconv",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/city41/neosdconv.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/city41/neosdconv/issues"
+  },
+  "homepage": "https://github.com/city41/neosdconv#readme"
+}

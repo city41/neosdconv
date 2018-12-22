@@ -1,8 +1,11 @@
 import fs from "fs";
 import path from "path";
-import tmp from "tmp";
-import extract from "extract-zip";
 
+type ConvertOptions = {
+    name: string;
+    year: number;
+    manufacturer: string;
+};
 type ConvertCallback = (err: Error | null, resultingPath?: string) => void;
 type FilesInMemory = { [key: string]: Buffer };
 type FileTypes = "p" | "s" | "m" | "v" | "c";
@@ -29,7 +32,7 @@ function loadFilesIntoMemory(dir: string): FilesInMemory {
 function isFileOfType(fileName: string, fileType: FileTypes): boolean {
     const lowerName = fileName.toLowerCase();
 
-    return !!lowerName.match(new RegExp(`${fileType}\\d`));
+    return !!lowerName.match(new RegExp(`\.${fileType}\\d$`));
 }
 
 function getSize(files: FilesInMemory, fileType: FileTypes): number {
@@ -65,7 +68,7 @@ function getData(files: FilesInMemory, fileType: FileTypes): Buffer {
     return Buffer.concat(buffers, size);
 }
 
-function buildNeoFile(romName: string, files: FilesInMemory): Buffer {
+function buildNeoFile(options: ConvertOptions, files: FilesInMemory): Buffer {
     // NEO1 : uint8_t header1, header2, header3, version;
     const tag = Buffer.from([
         "N".charCodeAt(0),
@@ -87,17 +90,21 @@ function buildNeoFile(romName: string, files: FilesInMemory): Buffer {
     );
 
     // year, genre, screenshot, NGH, all dummy data for now
+    const Puzzle = 10;
     const metadata = Buffer.from(
-        Uint32Array.from([new Date().getFullYear(), 0, 0, 0]).buffer
+        Uint32Array.from([options.year, Puzzle, 0, 0]).buffer
     );
 
-    const name = Buffer.from(romName);
+    const name = Buffer.from(options.name);
     const namePadding = Buffer.from(
-        new Array(33 - romName.length).fill(0, 0, 33 - romName.length)
+        new Array(33 - options.name.length).fill(0, 0, 33 - options.name.length)
     );
 
-    const manufacturer = Buffer.from("SNK");
-    const manufacturerPadding = Buffer.from(new Array(14).fill(0, 0, 14));
+    const manufacturer = Buffer.from(options.manufacturer);
+    const manLength = options.manufacturer.length;
+    const manufacturerPadding = Buffer.from(
+        new Array(manLength).fill(0, 0, manLength)
+    );
 
     const fillerLength = 128 + 290 + 4096 - 512;
     const filler = Buffer.from(
@@ -139,39 +146,25 @@ function buildNeoFile(romName: string, files: FilesInMemory): Buffer {
     return neoFile;
 }
 
-export function convertOneRom(
-    srcPath: string,
-    outDir: string,
+export function convertRom(
+    srcDir: string,
+    outPath: string,
+    options: ConvertOptions,
     callback: ConvertCallback
 ): void {
-    const romName = path.basename(srcPath, path.extname(srcPath));
+    const romName = path.basename(outPath, path.extname(outPath));
 
-    tmp.dir({ unsafeCleanup: true }, (err: Error, tmpDir: string) => {
+    const files = loadFilesIntoMemory(srcDir);
+
+    Object.keys(files).forEach(key => console.log(key, files[key].length));
+
+    const neoFile = buildNeoFile(options, files);
+
+    fs.writeFile(outPath, neoFile, (err?: Error) => {
         if (err) {
-            return callback(err);
+            callback(err);
+        } else {
+            callback(null, outPath);
         }
-
-        extract(srcPath, { dir: tmpDir }, (err?: Error | undefined) => {
-            if (err) {
-                return callback(err);
-            }
-
-            const files = loadFilesIntoMemory(tmpDir);
-
-            Object.keys(files).forEach(key =>
-                console.log(key, files[key].length)
-            );
-
-            const neoFile = buildNeoFile(romName, files);
-
-            const outPath = path.join(outDir, romName + ".neo");
-            fs.writeFile(outPath, neoFile, (err?: Error) => {
-                if (err) {
-                    callback(err);
-                } else {
-                    callback(null, outPath);
-                }
-            });
-        });
     });
 }

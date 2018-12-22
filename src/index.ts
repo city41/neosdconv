@@ -3,6 +3,7 @@
 import program from "commander";
 import path from "path";
 import fs from "fs";
+import { Genre } from "./genres";
 import { convertRom } from "./convertRom";
 
 const packageJson = require("../package.json");
@@ -15,6 +16,10 @@ program
     )
     .option("-o, --dest <dest path>", "The dest path to write the .neo file to")
     .option("-n, --game-name <name of the game>", "The name of the game")
+    .option(
+        "-g, --genre <genre>",
+        "The genre as taken from TerraOnion's readme"
+    )
     .option("-y, --year <year>", "year the game was released")
     .option("-m, --manufacturer <manufacturer>", "manufacturer of the game")
     .parse(process.argv);
@@ -44,8 +49,24 @@ if (!fs.existsSync(path.dirname(destPath))) {
 const options = {
     name: program.gameName || path.basename(destPath, path.extname(destPath)),
     year: parseInt(program.year || new Date().getFullYear(), 10),
-    manufacturer: program.manufacturer || "SNK"
+    manufacturer: program.manufacturer || "SNK",
+    genre: Genre[program.genre || "Other"]
 };
+
+if (options.genre === undefined) {
+    console.error("Genre must be one of: ", Object.keys(Genre).join(", "));
+    process.exit(1);
+}
+
+if (options.name.length > 33) {
+    console.error("Game name can not be longer than 33 characters");
+    process.exit(1);
+}
+
+if (options.manufacturer.length > 17) {
+    console.error("Manufacturer name can not be longer than 33 characters");
+    process.exit(1);
+}
 
 convertRom(srcDir, destPath, options, (err, resultingPath) => {
     if (err) {

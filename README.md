@@ -11,13 +11,13 @@ I have this working on my tiny little demo rom, but I doubt this tool is working
 You need NodeJS installed, I am using version 8.9.4
 
 1. `npm install -g neosdconv`
-2. `neosdconv -i <directory with your ROM files> -o <output file> -n <game name> -y <year> -m <manufacturer>`
+2. `neosdconv -i <directory with your ROM files> -o <output file> -n <game name> -g <genre> -y <year> -m <manufacturer>`
 
 The input directory is a directory containing your game's raw P, S, M, V and C ROMs
 
 The output path is something like `./mygame.neo`.
 
-For example: `neosdconv -i ./romFiles -o ./mygame.neo -n 'My Cool Game' -y 2018 -m city41`
+For example: `neosdconv -i ./romFiles -o ./mygame.neo -n 'My Cool Game' -g BeatEmUp -y 2018 -m city41`
 
 ## Goals
 

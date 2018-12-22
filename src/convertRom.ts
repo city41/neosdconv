@@ -3,6 +3,7 @@ import path from "path";
 
 type ConvertOptions = {
     name: string;
+    genre: number;
     year: number;
     manufacturer: string;
 };
@@ -105,10 +106,12 @@ function buildNeoFile(options: ConvertOptions, files: FilesInMemory): Buffer {
         ]).buffer
     );
 
-    // year, genre, screenshot, NGH, all dummy data for now
-    const Puzzle = 10;
+    // year, genre, screenshot, NGH
+    const screenshot = 0; // only commercial roms can have screenshots
+    const NGH = 0; // only commercial roms need NGH number
+
     const metadata = Buffer.from(
-        Uint32Array.from([options.year, Puzzle, 0, 0]).buffer
+        Uint32Array.from([options.year, options.genre, screenshot, NGH]).buffer
     );
 
     const name = Buffer.from(options.name);
@@ -119,7 +122,7 @@ function buildNeoFile(options: ConvertOptions, files: FilesInMemory): Buffer {
     const manufacturer = Buffer.from(options.manufacturer);
     const manLength = options.manufacturer.length;
     const manufacturerPadding = Buffer.from(
-        new Array(manLength).fill(0, 0, manLength)
+        new Array(17 - manLength).fill(0, 0, 17 - manLength)
     );
 
     const fillerLength = 128 + 290 + 4096 - 512;

@@ -7,11 +7,8 @@ A tool to convert a Neo Geo ROM into TerraOnion's NeoSD `.neo` format.
 This tool has successfully converted:
 
 * League Bowling
+* Pulstar
 * My tiny little demo ROM
-
-It has almost successfully converted:
-
-* Pulstar: just the C ROM data is off, need to figure out how multi C ROM pair games work, everything else is good
 
 It has failed on:
 

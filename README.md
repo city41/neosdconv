@@ -33,6 +33,10 @@ Beware, most commercial ROMs won't convert correctly, see status above.
 
 Just unzip the ROM into a directory, then use that directory as the input
 
+## If a conversion fails
+
+If a game fails to convert and load properly on the NeoSD, it is probably this tool's fault. Feel free to file an issue. But also many ROMs out on the internet do not convert properly. You need to use Neo Geo ROMs that were meant to be used with MAME. If a ROM fails to convert properly, it possibly also fails to convert on TerraOnion's official tool.
+
 ## Goals
 
 The main purpose of this tool is for Neo Geo development.

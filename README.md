@@ -4,7 +4,21 @@ A tool to convert a Neo Geo ROM into TerraOnion's NeoSD `.neo` format.
 
 ## Status
 
-I have this working on my tiny little demo rom, but I doubt this tool is working in general. My tiny test rom has no audio and just a single C ROM pair.
+This tool has successfully converted:
+
+* League Bowling
+* My tiny little demo ROM
+
+It has almost successfully converted:
+
+* Pulstar: just the C ROM data is off, need to figure out how multi C ROM pair games work, everything else is good
+
+It has failed on:
+
+* King of Fighters 94: crashes back to the NeoSD menu
+* Kizuna Encounter: crashes back to the NeoSD menu
+
+No other games have been attempted yet
 
 ## How to Use
 
@@ -18,6 +32,12 @@ The input directory is a directory containing your game's raw P, S, M, V and C R
 The output path is something like `./mygame.neo`.
 
 For example: `neosdconv -i ./romFiles -o ./mygame.neo -n 'My Cool Game' -g BeatEmUp -y 2018 -m city41`
+
+## How to Convert a Commercial ROM
+
+Beware, most commercial ROMs won't convert correct, see status above.
+
+Just unzip the ROM into a directory, then use that directory as the input
 
 ## Goals
 

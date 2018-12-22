@@ -9,7 +9,21 @@ type ConvertOptions = {
 };
 type ConvertCallback = (err: Error | null, resultingPath?: string) => void;
 type FilesInMemory = { [key: string]: Buffer };
-type FileTypes = "p" | "s" | "m" | "v" | "c";
+type FileTypes =
+    | "p"
+    | "s"
+    | "m"
+    | "v"
+    | "v1"
+    | "v2"
+    | "c1"
+    | "c2"
+    | "c3"
+    | "c4"
+    | "c5"
+    | "c6"
+    | "c7"
+    | "c8";
 
 function loadFilesIntoMemory(dir: string): FilesInMemory {
     return fs.readdirSync(dir).reduce(
@@ -30,10 +44,23 @@ function loadFilesIntoMemory(dir: string): FilesInMemory {
     );
 }
 
-function isFileOfType(fileName: string, fileType: FileTypes): boolean {
+function isFileOfType(
+    fileName: string,
+    fileType: FileTypes,
+    numberIncluded: boolean = false
+): boolean {
     const lowerName = fileName.toLowerCase();
+    const numberRegex = numberIncluded ? "" : "\\d";
 
-    return !!lowerName.match(new RegExp(`\.${fileType}\\d$`));
+    const matchesInNameWithRomExtension = !!lowerName.match(
+        new RegExp(`${fileType}${numberRegex}\\.rom$`)
+    );
+
+    const matchesInNameWithRomTypeExtension = !!lowerName.match(
+        new RegExp(`${fileType}${numberRegex}\\.${fileType}\${numberRegex}$`)
+    );
+
+    return matchesInNameWithRomExtension || matchesInNameWithRomTypeExtension;
 }
 
 function getSize(files: FilesInMemory, fileType: FileTypes): number {
@@ -47,7 +74,11 @@ function getSize(files: FilesInMemory, fileType: FileTypes): number {
     }, 0);
 }
 
-function getData(files: FilesInMemory, fileType: FileTypes): Buffer {
+function getData(
+    files: FilesInMemory,
+    fileType: FileTypes,
+    numberIncluded: boolean = false
+): Buffer {
     let size = 0;
 
     const buffers = Object.keys(files)
@@ -56,7 +87,7 @@ function getData(files: FilesInMemory, fileType: FileTypes): Buffer {
             (buildingBuffers, fileName) => {
                 const lowerName = fileName.toLowerCase();
 
-                if (isFileOfType(lowerName, fileType)) {
+                if (isFileOfType(lowerName, fileType, numberIncluded)) {
                     console.log("getData, file", fileName);
                     size += files[fileName].length;
                     return buildingBuffers.concat(files[fileName]);
@@ -68,6 +99,33 @@ function getData(files: FilesInMemory, fileType: FileTypes): Buffer {
         );
 
     return Buffer.concat(buffers, size);
+}
+
+function getVSizes(files: FilesInMemory) {
+    const v2Size = getSize(files, "v2");
+
+    if (v2Size > 0) {
+        return {
+            v1: getSize(files, "v1"),
+            v2: v2Size
+        };
+    } else {
+        return {
+            v1: getSize(files, "v"),
+            v2: 0
+        };
+    }
+}
+
+function getVData(files: FilesInMemory): Buffer {
+    const v2Data = getData(files, "v2");
+    let v1Data = getData(files, "v1");
+
+    if (v1Data.length === 0) {
+        v1Data = getData(files, "v");
+    }
+
+    return Buffer.concat([v1Data, v2Data], v1Data.length + v2Data.length);
 }
 
 function interleave(twoBankBuffer: Buffer, leafSize: number): Buffer {
@@ -89,6 +147,31 @@ function interleave(twoBankBuffer: Buffer, leafSize: number): Buffer {
     return interleavedBuffer;
 }
 
+function getCData(files: FilesInMemory): Buffer {
+    const buffers = [];
+    let totalSize = 0;
+
+    let index = 1;
+    let oddData = getData(files, `c${index}` as FileTypes, true);
+    let evenData = getData(files, `c${index + 1}` as FileTypes, true);
+
+    while (oddData.length > 0) {
+        const cRomPairNotInterleaved = Buffer.concat(
+            [oddData, evenData],
+            oddData.length + evenData.length
+        );
+        const interleaved = interleave(cRomPairNotInterleaved, 1);
+        buffers.push(interleaved);
+        totalSize += interleaved.length;
+
+        index += 2;
+        oddData = getData(files, `c${index}` as FileTypes, true);
+        evenData = getData(files, `c${index + 1}` as FileTypes, true);
+    }
+
+    return Buffer.concat(buffers, totalSize);
+}
+
 function buildNeoFile(options: ConvertOptions, files: FilesInMemory): Buffer {
     // NEO1 : uint8_t header1, header2, header3, version;
     const tag = Buffer.from([
@@ -99,14 +182,21 @@ function buildNeoFile(options: ConvertOptions, files: FilesInMemory): Buffer {
     ]);
 
     // PSize, SSize, MSize, V1Size, V2Size, CSize
+    const vSizes = getVSizes(files);
+    console.log("vSizes", vSizes);
+
+    // the cdata needs to be interleaved
+    // so first byte is from c1, second is from c2, etc
+    const cData = getCData(files);
+
     const sizes = Buffer.from(
         Uint32Array.from([
             getSize(files, "p"),
             getSize(files, "s"),
             getSize(files, "m"),
-            getSize(files, "v"),
-            0, // v2 size
-            getSize(files, "c")
+            vSizes.v1,
+            vSizes.v2,
+            cData.length
         ]).buffer
     );
 
@@ -151,11 +241,7 @@ function buildNeoFile(options: ConvertOptions, files: FilesInMemory): Buffer {
     const pData = getData(files, "p");
     const sData = getData(files, "s");
     const mData = getData(files, "m");
-    const vData = getData(files, "v");
-
-    // the cdata needs to be interleaved
-    // so first byte is from c1, second is from c2, etc
-    const cData = interleave(getData(files, "c"), 1);
+    const vData = getVData(files);
 
     const neoFile = Buffer.concat(
         [header, pData, sData, mData, vData, cData],

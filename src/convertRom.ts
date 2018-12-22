@@ -38,6 +38,7 @@ function isFileOfType(fileName: string, fileType: FileTypes): boolean {
 function getSize(files: FilesInMemory, fileType: FileTypes): number {
     return Object.keys(files).reduce((buildingSize, fileName) => {
         if (isFileOfType(fileName, fileType)) {
+            console.log("getSize, file", fileName, files[fileName].length);
             return buildingSize + files[fileName].length;
         } else {
             return buildingSize;
@@ -66,6 +67,21 @@ function getData(files: FilesInMemory, fileType: FileTypes): Buffer {
         );
 
     return Buffer.concat(buffers, size);
+}
+
+function interleave(twoBankBuffer: Buffer): Buffer {
+    const interleavedBuffer = Buffer.alloc(twoBankBuffer.length);
+    const halfLength = twoBankBuffer.length / 2;
+
+    let ilbi = 0;
+
+    for (let i = 0; i < halfLength; ++i) {
+        interleavedBuffer[ilbi] = twoBankBuffer[i];
+        interleavedBuffer[ilbi + 1] = twoBankBuffer[i + halfLength];
+        ilbi += 2;
+    }
+
+    return interleavedBuffer;
 }
 
 function buildNeoFile(options: ConvertOptions, files: FilesInMemory): Buffer {
@@ -129,7 +145,10 @@ function buildNeoFile(options: ConvertOptions, files: FilesInMemory): Buffer {
     const sData = getData(files, "s");
     const mData = getData(files, "m");
     const vData = getData(files, "v");
-    const cData = getData(files, "c");
+
+    // the cdata needs to be interleaved
+    // so first byte is from c1, second is from c2, etc
+    const cData = interleave(getData(files, "c"));
 
     const neoFile = Buffer.concat(
         [header, pData, sData, mData, vData, cData],
@@ -155,8 +174,6 @@ export function convertRom(
     const romName = path.basename(outPath, path.extname(outPath));
 
     const files = loadFilesIntoMemory(srcDir);
-
-    Object.keys(files).forEach(key => console.log(key, files[key].length));
 
     const neoFile = buildNeoFile(options, files);
 

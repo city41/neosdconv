@@ -35,7 +35,7 @@ For example: `neosdconv -i ./romFiles -o ./mygame.neo -n 'My Cool Game' -g BeatE
 
 ## How to Convert a Commercial ROM
 
-Beware, most commercial ROMs won't convert correct, see status above.
+Beware, most commercial ROMs won't convert correctly, see status above.
 
 Just unzip the ROM into a directory, then use that directory as the input
 

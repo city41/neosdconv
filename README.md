@@ -6,11 +6,12 @@ A tool to convert a Neo Geo ROM into TerraOnion's NeoSD `.neo` format.
 
 This tool has successfully converted:
 
-* League Bowling
-* Pulstar
-* My tiny little demo ROM
 * King of Fighters 94
 * Kizuna Encounter
+* League Bowling
+* My tiny little demo ROM
+* Neo Bomberman
+* Pulstar
 
 No other games have been attempted yet, and many games will likely not work.
 

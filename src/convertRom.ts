@@ -1,6 +1,11 @@
 import fs from "fs";
 import path from "path";
 
+const SIXTY_FOUR_KB = 64 * 1024;
+const TWO_FIFTY_SIX_KB = 256 * 1024;
+const ONE_MEG = 0x100000;
+const TWO_MEGS = ONE_MEG * 2;
+
 type ConvertOptions = {
     name: string;
     genre: number;
@@ -153,13 +158,15 @@ function getVSizes(files: FilesInMemory) {
     const v2Size = getSize(files, "v2");
 
     if (v2Size > 0) {
+        const v1Size = getSize(files, "v1");
+
         return {
-            v1: getSize(files, "v1"),
-            v2: v2Size
+            v1: roundUpToNearest(v1Size, SIXTY_FOUR_KB),
+            v2: roundUpToNearest(v2Size, SIXTY_FOUR_KB)
         };
     } else {
         return {
-            v1: getSize(files, "v"),
+            v1: roundUpToNearest(getSize(files, "v"), SIXTY_FOUR_KB),
             v2: 0
         };
     }
@@ -173,12 +180,15 @@ function getVSizes(files: FilesInMemory) {
  * @returns {Buffer} the game's V ROM data
  */
 function getVData(files: FilesInMemory): Buffer {
-    const v2Data = getData(files, "v2");
+    let v2Data = getData(files, "v2");
     let v1Data = getData(files, "v1");
 
     if (v1Data.length === 0) {
         v1Data = getData(files, "v");
     }
+
+    v1Data = padToNearest(v1Data, SIXTY_FOUR_KB);
+    v2Data = padToNearest(v2Data, SIXTY_FOUR_KB);
 
     return Buffer.concat([v1Data, v2Data], v1Data.length + v2Data.length);
 }
@@ -248,9 +258,6 @@ function getCData(files: FilesInMemory): Buffer {
     return Buffer.concat(buffers, totalSize);
 }
 
-const ONE_MEG = 0x100000;
-const TWO_MEGS = ONE_MEG * 2;
-
 /**
  * Takes a buffer that is 2 megabytes in size and swaps the megabytes.
  * This is required for large P ROMs, such as in King of Fighters 94. The Neo Geo
@@ -272,6 +279,16 @@ function swapMegs(data: Buffer): Buffer {
     return Buffer.concat([secondMeg, firstMeg], TWO_MEGS);
 }
 
+function roundUpToNearest(value: number, multiple: number): number {
+    const amountToAdd = multiple - (value % multiple);
+
+    if (amountToAdd === multiple) {
+        return value;
+    }
+
+    return value + amountToAdd;
+}
+
 function padToNearest(data: Buffer, byteMultiple: number): Buffer {
     const amountToPad = byteMultiple - (data.length % byteMultiple);
 
@@ -280,7 +297,7 @@ function padToNearest(data: Buffer, byteMultiple: number): Buffer {
     }
 
     const padding = Buffer.from(
-        Uint32Array.from(new Array(amountToPad).fill(0, 0, amountToPad))
+        Uint32Array.from(new Array(amountToPad).fill(0xff, 0, amountToPad))
     );
 
     return Buffer.concat([data, padding], data.length + padding.length);
@@ -297,8 +314,6 @@ function padToNearest(data: Buffer, byteMultiple: number): Buffer {
  */
 function getPData(files: FilesInMemory): Buffer {
     let pData = getData(files, "p");
-
-    pData = padToNearest(pData, 64 * 1024);
 
     if (pData.length === TWO_MEGS) {
         console.log("swapping P ROM megs");
@@ -320,21 +335,26 @@ function buildNeoFile(options: ConvertOptions, files: FilesInMemory): Buffer {
         1
     ]);
 
-    // PSize, SSize, MSize, V1Size, V2Size, CSize
     const vSizes = getVSizes(files);
-    console.log("vSizes", vSizes);
 
-    // the cdata needs to be interleaved
-    // so first byte is from c1, second is from c2, etc
-    const cData = getCData(files);
+    const cData = padToNearest(getCData(files), TWO_FIFTY_SIX_KB);
+    console.log("C data length", cData.length);
+    const pData = padToNearest(getPData(files), SIXTY_FOUR_KB);
+    console.log("P data length", pData.length);
+    const sData = padToNearest(getData(files, "s"), SIXTY_FOUR_KB);
+    console.log("S data length", sData.length);
+    const mData = padToNearest(getData(files, "m"), SIXTY_FOUR_KB);
+    console.log("M data length", mData.length);
+    // getVData pads to 64kb
+    const vData = getVData(files);
+    console.log("V data length", vData.length);
 
-    const pData = getPData(files);
-
+    // PSize, SSize, MSize, V1Size, V2Size, CSize
     const sizes = Buffer.from(
         Uint32Array.from([
             pData.length,
-            getSize(files, "s"),
-            getSize(files, "m"),
+            sData.length,
+            mData.length,
             vSizes.v1,
             vSizes.v2,
             cData.length
@@ -378,10 +398,6 @@ function buildNeoFile(options: ConvertOptions, files: FilesInMemory): Buffer {
         ],
         4096
     );
-
-    const sData = getData(files, "s");
-    const mData = getData(files, "m");
-    const vData = getVData(files);
 
     const neoFile = Buffer.concat(
         [header, pData, sData, mData, vData, cData],

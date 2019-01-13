@@ -272,6 +272,20 @@ function swapMegs(data: Buffer): Buffer {
     return Buffer.concat([secondMeg, firstMeg], TWO_MEGS);
 }
 
+function padToNearest(data: Buffer, byteMultiple: number): Buffer {
+    const amountToPad = byteMultiple - (data.length % byteMultiple);
+
+    if (amountToPad === byteMultiple) {
+        return data;
+    }
+
+    const padding = Buffer.from(
+        Uint32Array.from(new Array(amountToPad).fill(0, 0, amountToPad))
+    );
+
+    return Buffer.concat([data, padding], data.length + padding.length);
+}
+
 /**
  * Returns the P ROM data. If a P ROM is 2 megabytes, the megs need to be swapped,
  * else just return the P ROM as-is.
@@ -283,6 +297,8 @@ function swapMegs(data: Buffer): Buffer {
  */
 function getPData(files: FilesInMemory): Buffer {
     let pData = getData(files, "p");
+
+    pData = padToNearest(pData, 64 * 1024);
 
     if (pData.length === TWO_MEGS) {
         console.log("swapping P ROM megs");

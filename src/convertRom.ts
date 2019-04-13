@@ -48,6 +48,12 @@ function loadFilesIntoMemory(dir: string): FilesInMemory {
             }
 
             const fullPath = path.join(dir, file);
+
+            // ignore any directories
+            if (fs.lstatSync(fullPath).isDirectory()) {
+                return building;
+            }
+
             const fileData = fs.readFileSync(fullPath);
 
             building[file] = fileData;

@@ -85,7 +85,7 @@ function isFileOfType(
     const numberRegex = numberIncluded ? "" : "\\d";
 
     const matchesInNameWithRomExtension = !!lowerName.match(
-        new RegExp(`${fileType}${numberRegex}\\.rom$`)
+        new RegExp(`${fileType}${numberRegex}\\.(rom|bin)$`)
     );
 
     const matchesInNameWithRomTypeExtension = !!lowerName.match(
@@ -441,7 +441,7 @@ export function convertRom(
 
     const neoFile = buildNeoFile(options, files);
 
-    fs.writeFile(outPath, neoFile, (err?: Error) => {
+    fs.writeFile(outPath, neoFile, (err: any) => {
         if (err) {
             callback(err);
         } else {

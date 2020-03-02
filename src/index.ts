@@ -28,7 +28,7 @@ if (!program.input || !program.dest) {
     program.help();
 }
 
-const srcDir = path.join(process.cwd(), program.input);
+const srcDir = program.input.indexOf('/') === 0 ? program.input : path.join(process.cwd(), program.input);
 const destPath = path.join(process.cwd(), program.dest || "");
 
 if (!fs.existsSync(srcDir)) {

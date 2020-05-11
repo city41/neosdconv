@@ -28,6 +28,12 @@ The output path is something like `./mygame.neo`.
 
 For example: `neosdconv -i ./romFiles -o ./mygame.neo -n 'My Cool Game' -g BeatEmUp -y 2018 -m city41`
 
+## Setting the Genre
+
+the `-g` flag is used to set the genre. It must be one of the values found here: https://github.com/city41/neosdconv/blob/master/src/genres.ts
+
+If it is an invalid value or left out entirely, the genre will default to `Other`.
+
 ## How to Convert a Commercial ROM
 
 Beware, most commercial ROMs won't convert correctly, see status above.

@@ -2,6 +2,7 @@
   "name": "neosdconv",
   "version": "0.1.4",
   "description": "",
+  "files": ["lib"],
   "main": "lib/index.js",
   "preferGlobal": true,
   "bin": {

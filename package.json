@@ -1,8 +1,10 @@
 {
   "name": "neosdconv",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "",
-  "files": ["lib"],
+  "files": [
+    "lib"
+  ],
   "main": "lib/index.js",
   "preferGlobal": true,
   "bin": {

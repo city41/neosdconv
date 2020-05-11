@@ -40,28 +40,25 @@ type FileTypes =
  * @returns {FilesInMemory} an object containing the binary data of each file
  */
 function loadFilesIntoMemory(dir: string): FilesInMemory {
-    return fs.readdirSync(dir).reduce(
-        (building, file) => {
-            // lots of roms have an html file inside
-            if (file.indexOf(".html") > -1) {
-                return building;
-            }
-
-            const fullPath = path.join(dir, file);
-
-            // ignore any directories
-            if (fs.lstatSync(fullPath).isDirectory()) {
-                return building;
-            }
-
-            const fileData = fs.readFileSync(fullPath);
-
-            building[file] = fileData;
-
+    return fs.readdirSync(dir).reduce((building, file) => {
+        // lots of roms have an html file inside
+        if (file.indexOf(".html") > -1) {
             return building;
-        },
-        {} as FilesInMemory
-    );
+        }
+
+        const fullPath = path.join(dir, file);
+
+        // ignore any directories
+        if (fs.lstatSync(fullPath).isDirectory()) {
+            return building;
+        }
+
+        const fileData = fs.readFileSync(fullPath);
+
+        building[file] = fileData;
+
+        return building;
+    }, {} as FilesInMemory);
 }
 
 /**
@@ -132,20 +129,17 @@ function getData(
 
     const buffers = Object.keys(files)
         .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()))
-        .reduce(
-            (buildingBuffers, fileName) => {
-                const lowerName = fileName.toLowerCase();
+        .reduce((buildingBuffers, fileName) => {
+            const lowerName = fileName.toLowerCase();
 
-                if (isFileOfType(lowerName, fileType, numberIncluded)) {
-                    console.log("getData, file", fileName);
-                    size += files[fileName].length;
-                    return buildingBuffers.concat(files[fileName]);
-                } else {
-                    return buildingBuffers;
-                }
-            },
-            [] as Buffer[]
-        );
+            if (isFileOfType(lowerName, fileType, numberIncluded)) {
+                console.log("getData, file", fileName);
+                size += files[fileName].length;
+                return buildingBuffers.concat(files[fileName]);
+            } else {
+                return buildingBuffers;
+            }
+        }, [] as Buffer[]);
 
     return Buffer.concat(buffers, size);
 }
@@ -441,7 +435,7 @@ export function convertRom(
 
     const neoFile = buildNeoFile(options, files);
 
-    fs.writeFile(outPath, neoFile, (err?: Error) => {
+    fs.writeFile(outPath, neoFile, (err: NodeJS.ErrnoException | null) => {
         if (err) {
             callback(err);
         } else {

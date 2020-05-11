@@ -58,13 +58,19 @@ if (options.genre === undefined) {
     process.exit(1);
 }
 
-if (options.name.length > 33) {
-    console.error("Game name can not be longer than 33 characters");
+const MAX_NAME_LENGTH = 33;
+if (options.name.length > MAX_NAME_LENGTH) {
+    console.error(
+        `Game name can not be longer than ${MAX_NAME_LENGTH} characters`
+    );
     process.exit(1);
 }
 
-if (options.manufacturer.length > 17) {
-    console.error("Manufacturer name can not be longer than 33 characters");
+const MAX_MANUFACTURER_LENGTH = 17;
+if (options.manufacturer.length > MAX_MANUFACTURER_LENGTH) {
+    console.error(
+        `Manufacturer name can not be longer than ${MAX_MANUFACTURER_LENGTH} characters`
+    );
     process.exit(1);
 }
 

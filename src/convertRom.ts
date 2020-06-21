@@ -42,7 +42,22 @@ type FileTypes =
 function loadFilesIntoMemory(dir: string): FilesInMemory {
     return fs.readdirSync(dir).reduce((building, file) => {
         // lots of roms have an html file inside
-        if (file.indexOf(".html") > -1) {
+        if (
+            file
+                .trim()
+                .toLowerCase()
+                .endsWith(".html")
+        ) {
+            return building;
+        }
+
+        // extracting a zipped rom into the same directory is common
+        if (
+            file
+                .trim()
+                .toLowerCase()
+                .endsWith(".zip")
+        ) {
             return building;
         }
 
@@ -79,10 +94,10 @@ function isFileOfType(
     numberIncluded: boolean = false
 ): boolean {
     const lowerName = fileName.toLowerCase();
-    const numberRegex = numberIncluded ? "" : "\\d";
+    const numberRegex = numberIncluded ? ".?" : "\\d.?";
 
     const matchesInNameWithRomExtension = !!lowerName.match(
-        new RegExp(`${fileType}${numberRegex}\\.rom$`)
+        new RegExp(`${fileType}${numberRegex}\\.(rom|bin)$`)
     );
 
     const matchesInNameWithRomTypeExtension = !!lowerName.match(
@@ -429,8 +444,6 @@ export function convertRom(
     options: ConvertOptions,
     callback: ConvertCallback
 ): void {
-    const romName = path.basename(outPath, path.extname(outPath));
-
     const files = loadFilesIntoMemory(srcDir);
 
     const neoFile = buildNeoFile(options, files);

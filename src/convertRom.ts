@@ -358,7 +358,7 @@ function getScreenshotNumber(rawScreenshotInput: string | undefined) {
  *
  * NOTE: TerraOnion stores this rather strangely. They store the decimal value as if it is
  * hex. So for example, RBFF's NGH number is decimal 95, and in the .neo file it is stored as
- * '95 00 00 00'. Or tame Neo Turf Masters, NGH is decimal 200, stored in the .neo file as '00 02 00 00'
+ * '95 00 00 00'. Or take Neo Turf Masters, NGH is decimal 200, stored in the .neo file as '00 02 00 00'
  * Very strange, but I guess it makes looking at the value in a hex editor easier? who knows
  */
 function getNGHNumber(rawNGHInput: string | undefined) {

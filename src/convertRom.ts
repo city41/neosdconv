@@ -11,6 +11,8 @@ type ConvertOptions = {
     genre: number;
     year: number;
     manufacturer: string;
+    ngh?: string;
+    screenshot?: string;
 };
 
 type ConvertCallback = (err: Error | null, resultingPath?: string) => void;
@@ -42,22 +44,12 @@ type FileTypes =
 function loadFilesIntoMemory(dir: string): FilesInMemory {
     return fs.readdirSync(dir).reduce((building, file) => {
         // lots of roms have an html file inside
-        if (
-            file
-                .trim()
-                .toLowerCase()
-                .endsWith(".html")
-        ) {
+        if (file.trim().toLowerCase().endsWith(".html")) {
             return building;
         }
 
         // extracting a zipped rom into the same directory is common
-        if (
-            file
-                .trim()
-                .toLowerCase()
-                .endsWith(".zip")
-        ) {
+        if (file.trim().toLowerCase().endsWith(".zip")) {
             return building;
         }
 
@@ -177,12 +169,12 @@ function getVSizes(files: FilesInMemory) {
 
         return {
             v1: roundUpToNearest(v1Size, SIXTY_FOUR_KB),
-            v2: roundUpToNearest(v2Size, SIXTY_FOUR_KB)
+            v2: roundUpToNearest(v2Size, SIXTY_FOUR_KB),
         };
     } else {
         return {
             v1: roundUpToNearest(getSize(files, "v"), SIXTY_FOUR_KB),
-            v2: 0
+            v2: 0,
         };
     }
 }
@@ -338,6 +330,59 @@ function getPData(files: FilesInMemory): Buffer {
     return pData;
 }
 
+function getScreenshotNumber(rawScreenshotInput: string | undefined) {
+    if (rawScreenshotInput === undefined) {
+        return 0;
+    }
+
+    const asNumber = parseInt(rawScreenshotInput, 10);
+
+    if (!isNaN(asNumber)) {
+        return asNumber;
+    }
+
+    if (typeof rawScreenshotInput === "string") {
+        console.warn(
+            "Invalid screenshot argument provided,",
+            rawScreenshotInput,
+            "it will be ignored"
+        );
+    }
+
+    return 0;
+}
+
+/**
+ * Convert the raw NGH input from the command line into a value that can be stored
+ * in the metadata section.
+ *
+ * NOTE: TerraOnion stores this rather strangely. They store the decimal value as if it is
+ * hex. So for example, RBFF's NGH number is decimal 95, and in the .neo file it is stored as
+ * '95 00 00 00'. Or tame Neo Turf Masters, NGH is decimal 200, stored in the .neo file as '00 02 00 00'
+ * Very strange, but I guess it makes looking at the value in a hex editor easier? who knows
+ */
+function getNGHNumber(rawNGHInput: string | undefined) {
+    if (rawNGHInput === undefined) {
+        return 0;
+    }
+
+    const parsedAsIfHex = parseInt(rawNGHInput, 16);
+
+    if (!isNaN(parsedAsIfHex)) {
+        return parsedAsIfHex;
+    }
+
+    if (typeof rawNGHInput === "string") {
+        console.warn(
+            "Invalid NGH argument provided,",
+            rawNGHInput,
+            "it will be ignored"
+        );
+    }
+
+    return 0;
+}
+
 /**
  * The main orchestrator for building a .neo file.
  */
@@ -347,7 +392,7 @@ function buildNeoFile(options: ConvertOptions, files: FilesInMemory): Buffer {
         "N".charCodeAt(0),
         "E".charCodeAt(0),
         "O".charCodeAt(0),
-        1
+        1,
     ]);
 
     const vSizes = getVSizes(files);
@@ -372,13 +417,13 @@ function buildNeoFile(options: ConvertOptions, files: FilesInMemory): Buffer {
             mData.length,
             vSizes.v1,
             vSizes.v2,
-            cData.length
+            cData.length,
         ]).buffer
     );
 
     // year, genre, screenshot, NGH
-    const screenshot = 0; // only commercial roms can have screenshots
-    const NGH = 0; // only commercial roms need NGH number
+    const screenshot = getScreenshotNumber(options.screenshot);
+    const NGH = getNGHNumber(options.ngh);
 
     const metadata = Buffer.from(
         Uint32Array.from([options.year, options.genre, screenshot, NGH]).buffer
@@ -409,7 +454,7 @@ function buildNeoFile(options: ConvertOptions, files: FilesInMemory): Buffer {
             namePadding,
             manufacturer,
             manufacturerPadding,
-            filler
+            filler,
         ],
         4096
     );

@@ -22,6 +22,11 @@ program
     )
     .option("-y, --year <year>", "year the game was released")
     .option("-m, --manufacturer <manufacturer>", "manufacturer of the game")
+    .option("-#, --ngh <ngh>", "The game's NGH number")
+    .option(
+        "-s, --screenshot <screenshot>",
+        "The game's NeoSD screenshot number"
+    )
     .parse(process.argv);
 
 if (!program.input || !program.dest) {
@@ -50,7 +55,9 @@ const options = {
     name: program.gameName || path.basename(destPath, path.extname(destPath)),
     year: parseInt(program.year || new Date().getFullYear(), 10),
     manufacturer: program.manufacturer || "SNK",
-    genre: Genre[program.genre || "Other"]
+    genre: Genre[program.genre || "Other"],
+    ngh: program.ngh,
+    screenshot: program.screenshot,
 };
 
 if (options.genre === undefined) {

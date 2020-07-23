@@ -11,7 +11,7 @@ const Genre: GenreObject = {
     Shooter: 7,
     Quiz: 8,
     Fighting: 9,
-    Puzzle: 10
+    Puzzle: 10,
 };
 
 export { Genre };

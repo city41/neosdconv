@@ -32,7 +32,9 @@ For example: `neosdconv -i ./romFiles -o ./mygame.neo -n 'My Cool Game' -g BeatE
 
 These are both optional, and should not be used for homebrew roms.
 
-You can set a commercial's NGH number with `-# <ngh>` and also the screenshot to use with `-s <screenshot number>`. NGH numbers can be found here: http://www.neo-geo.com/snk/master_list-ngh.htm. Screenshot numbers are proprietary to TerraOnion, and I don't know of an easy way to get them. The screenshot option was added for completeness.
+You can set a commercial ROM's NGH number with `-# <ngh number>` (such as `-# 95` for Real Bout Fatal Fury) and also the screenshot with `-s <screenshot number>`. NGH numbers can be found here: http://www.neo-geo.com/snk/master_list-ngh.htm. Screenshot numbers are proprietary to TerraOnion, and I don't know of an easy way to get them. The screenshot option was added for completeness.
+
+If NGH or screenshot are provided and are invalid, they will default to zero and a warning will be emitted.
 
 ## Setting the Genre
 

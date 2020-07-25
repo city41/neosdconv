@@ -74,7 +74,7 @@ function loadFilesIntoMemory(dir: string): FilesInMemory {
  *
  * The currently supported formats:
  * 1. <misc text>-<romType><number>.<romType><number>, ie "089-c1.c1"
- * 2. <misc text>-<romType><number>.rom, ie "kof94_p1.rom"
+ * 2. <misc text>-<romType><number>.rom (or .bin), ie "kof94_p1.rom" or "kof94_p1.bin"
  *
  * @param {string} fileName
  * @param {FileTypes} fileType the type of file to check for, ie 'c' or 'p', etc
@@ -207,7 +207,7 @@ function getVData(files: FilesInMemory): Buffer {
  * This is used to interleave C ROM data, as the .neo format requires it to be interleaved
  *
  * @param {Buffer} twoBankBuffer the input buffer to interleave
- * @param {number} [leafSize] how big the interleaves should be, default is 1 byte
+ * @param {number} [leafSize] how big the interleaves should be
  * @returns {Buffer} the interleaved buffer
  */
 function interleave(twoBankBuffer: Buffer, leafSize: number): Buffer {
@@ -275,7 +275,6 @@ function getCData(files: FilesInMemory): Buffer {
  * @returns {Buffer} a buffer with data's megs swapped
  */
 function swapMegs(data: Buffer): Buffer {
-    debugger;
     if (data.length !== TWO_MEGS) {
         throw new Error("swapMegs: asked to swap something that is not 2mib");
     }
@@ -330,7 +329,7 @@ function getPData(files: FilesInMemory): Buffer {
     return pData;
 }
 
-function getScreenshotNumber(rawScreenshotInput: string | undefined) {
+function getScreenshotNumber(rawScreenshotInput: string | undefined): number {
     if (rawScreenshotInput === undefined) {
         return 0;
     }
@@ -345,7 +344,7 @@ function getScreenshotNumber(rawScreenshotInput: string | undefined) {
         console.warn(
             "Invalid screenshot argument provided,",
             rawScreenshotInput,
-            "it will be ignored"
+            "it will be ignored, screenshot will be zero"
         );
     }
 
@@ -361,11 +360,12 @@ function getScreenshotNumber(rawScreenshotInput: string | undefined) {
  * '95 00 00 00'. Or take Neo Turf Masters, NGH is decimal 200, stored in the .neo file as '00 02 00 00'
  * Very strange, but I guess it makes looking at the value in a hex editor easier? who knows
  */
-function getNGHNumber(rawNGHInput: string | undefined) {
+function getNGHNumber(rawNGHInput: string | undefined): number {
     if (rawNGHInput === undefined) {
         return 0;
     }
 
+    // see the comment above about why we're acting as if it is a hex number
     const parsedAsIfHex = parseInt(rawNGHInput, 16);
 
     if (!isNaN(parsedAsIfHex)) {
@@ -376,7 +376,7 @@ function getNGHNumber(rawNGHInput: string | undefined) {
         console.warn(
             "Invalid NGH argument provided,",
             rawNGHInput,
-            "it will be ignored"
+            "it will be ignored, NGH will be zero"
         );
     }
 
@@ -483,7 +483,7 @@ function buildNeoFile(options: ConvertOptions, files: FilesInMemory): Buffer {
  * @param {ConvertOptions} options settings such as game name and year
  * @param {ConvertCallback} callback called once the conversion is done
  */
-export function convertRom(
+function convertRom(
     srcDir: string,
     outPath: string,
     options: ConvertOptions,
@@ -501,3 +501,5 @@ export function convertRom(
         }
     });
 }
+
+export { convertRom };

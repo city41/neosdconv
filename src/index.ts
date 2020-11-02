@@ -33,8 +33,8 @@ if (!program.input || !program.dest) {
     program.help();
 }
 
-const srcDir = path.join(process.cwd(), program.input);
-const destPath = path.join(process.cwd(), program.dest || "");
+const srcDir = path.resolve(process.cwd(), program.input);
+const destPath = path.resolve(process.cwd(), program.dest || "");
 
 if (!fs.existsSync(srcDir)) {
     console.error(`No directory found at ${srcDir}`);

@@ -50,6 +50,15 @@ Just unzip the ROM into a directory, then use that directory as the input
 
 If a game fails to convert and load properly on the NeoSD, it might be this tool's fault. Feel free to file an issue. But also many ROMs out on the internet do not convert properly. You need to use Neo Geo ROMs that were meant to be used with MAME. If a ROM fails to convert properly, it possibly also fails to convert on TerraOnion's official tool.
 
+## Bulk conversion using scripts/convert.sh
+
+Kris Bahnsen (@kbembedded) has contributed a shell script that can bulk convert a directory of roms. To use it:
+
+1. Grab it from the scripts directory (you can clone this repo or download a zip from the main github page), you will need both `convert.sh` and the accompanying `neosd_romset.csv` file.
+2. `scripts/convert.sh <directory to convert>`
+
+Your system needs neosdconv installed (*see above), as well as sh or bash, unzip, sed and awk
+
 ## Goals
 
 The main purpose of this tool is for Neo Geo development.

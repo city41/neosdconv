@@ -10,7 +10,7 @@ usage() {
 	echo "  Convert a single ROM set archive or a folder of archives from"
 	echo "  traditional NeoGeo ROM sets to the NeoSD .neo format"
 	echo ""
-	echo "  <input>       - Can be a single archive file or folder with multple archives"
+	echo "  <input>       - Can be a single archive file or folder with multiple archives"
 	echo "  <output dir>  - Output directory, if not specified, defaults to PWD"
 	echo "  [CSV]         - CSV file that is used as a lookup table for ROM sets"
 	echo "    See the CSV file, \"${CSV_IN}\", for the layout of this CSV file"

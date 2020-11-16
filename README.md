@@ -57,7 +57,7 @@ Kris Bahnsen (@kbembedded) has contributed a shell script that can bulk convert 
 1. Grab it from the scripts directory (you can clone this repo or download a zip from the main github page), you will need both `convert.sh` and the accompanying `neosd_romset.csv` file.
 2. `scripts/convert.sh <directory to convert>`
 
-Your system needs neosdconv installed (*see above), as well as sh or bash, unzip, sed and awk
+Your system needs neosdconv installed (see above), as well as sh or bash, unzip, sed and awk
 
 ## Goals
 

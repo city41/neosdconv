@@ -59,6 +59,8 @@ Kris Bahnsen (@kbembedded) has contributed a shell script that can bulk convert 
 
 Your system needs neosdconv installed (see above), as well as sh or bash, unzip, sed and awk
 
+The script is flexible on the locations of the input roms, output folder and the location of the csv file. For more information, run `convert.sh` without any arguments for help.
+
 ## Goals
 
 The main purpose of this tool is for Neo Geo development.

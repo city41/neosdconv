@@ -39,14 +39,14 @@ get_rom_info_from_csv() {
 	fi
 
 	# Get some file info
-	ROMSET=$(awk -vLINE="${LINE}" -F"," '{if(NR==LINE) print $1}' "${CSV}")
-	SCREENSHOT=$(awk -vLINE="${LINE}" -F"," '{if(NR==LINE) print $2}' "${CSV}")
-	NGH=$(awk -vLINE="${LINE}" -F"," '{if(NR==LINE) print $3}' "${CSV}")
-	TITLE=$(awk -vLINE="${LINE}" -F"," '{if(NR==LINE) print $4}' "${CSV}")
-	GENRE=$(awk -vLINE="${LINE}" -F"," '{if(NR==LINE) print $5}' "${CSV}")
-	YEAR=$(awk -vLINE="${LINE}" -F"," '{if(NR==LINE) print $6}' "${CSV}")
-	DEV=$(awk -vLINE="${LINE}" -F"," '{if(NR==LINE) print $7}' "${CSV}")
-	PARENT=$(awk -vLINE="${LINE}" -F"," '{if(NR==LINE) print $8}' "${CSV}")
+	ROMSET=$(awk -v LINE="${LINE}" -F"," '{if(NR==LINE) print $1}' "${CSV}")
+	SCREENSHOT=$(awk -v LINE="${LINE}" -F"," '{if(NR==LINE) print $2}' "${CSV}")
+	NGH=$(awk -v LINE="${LINE}" -F"," '{if(NR==LINE) print $3}' "${CSV}")
+	TITLE=$(awk -v LINE="${LINE}" -F"," '{if(NR==LINE) print $4}' "${CSV}")
+	GENRE=$(awk -v LINE="${LINE}" -F"," '{if(NR==LINE) print $5}' "${CSV}")
+	YEAR=$(awk -v LINE="${LINE}" -F"," '{if(NR==LINE) print $6}' "${CSV}")
+	DEV=$(awk -v LINE="${LINE}" -F"," '{if(NR==LINE) print $7}' "${CSV}")
+	PARENT=$(awk -v LINE="${LINE}" -F"," '{if(NR==LINE) print $8}' "${CSV}")
 
 	if [ ! -z "${PARENT}" ];then
 		echo "Skipping \"${FILENAME}\", ROMs requiring a parent ROM are unsupported at this time" >> output.log
@@ -177,7 +177,7 @@ fi
 
 # Make a tmp file of our CSV with all of the comments and empty lines removed
 CSV=$(mktemp)
-sed -e '/^#/d' -e '/^\s/d' "${CSV_IN}"  > "${CSV}"
+sed -e '/^#/d' -e '/^\s*$/d' "${CSV_IN}"  > "${CSV}"
 
 rm output.log >/dev/null 2>&1
 

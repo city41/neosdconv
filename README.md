@@ -4,16 +4,7 @@ A tool to convert a Neo Geo ROM into TerraOnion's NeoSD `.neo` format.
 
 ## Status
 
-This tool has successfully converted:
-
-* King of Fighters 94
-* Kizuna Encounter
-* League Bowling
-* My tiny little demo ROM
-* Neo Bomberman
-* Pulstar
-
-and many other games. At this point, most (and possibly all?) commercial ROMs convert successfully.
+This tool should successfully convert any commercial game now. There are some more exotic games out there that don't convert properly, such as [Bad Apple](https://github.com/city41/neosdconv/issues/2) and possibly [SS5 Perfect](https://github.com/city41/neosdconv/issues/3) as well.
 
 ## How to Use
 
@@ -61,9 +52,4 @@ Your system needs neosdconv installed (see above), as well as sh or bash, unzip,
 
 The script is flexible on the locations of the input roms, output folder and the location of the csv file. For more information, run `convert.sh` without any arguments for help.
 
-## Goals
-
-The main purpose of this tool is for Neo Geo development.
-
-It has gradually added the needed features and bug fixes to support commercial ROMs, as gradualy more and more people have been using it to for that.
 

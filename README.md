@@ -4,7 +4,7 @@ A tool to convert a Neo Geo ROM into TerraOnion's NeoSD `.neo` format.
 
 ## Status
 
-This tool should successfully convert any commercial game now. There are some more exotic games out there that don't convert properly, such as [Bad Apple](https://github.com/city41/neosdconv/issues/2) and possibly [SS5 Perfect](https://github.com/city41/neosdconv/issues/3) as well.
+This tool should successfully convert any commercial game now. It should also convert any homebrew ROM, originally homebrew dev was the main purpose of this tool. There are some more exotic games out there that don't convert properly, such as [Bad Apple](https://github.com/city41/neosdconv/issues/2) and possibly [SS5 Perfect](https://github.com/city41/neosdconv/issues/3) as well.
 
 ## How to Use
 
@@ -40,6 +40,10 @@ Just unzip the ROM into a directory, then use that directory as the input
 ## If a conversion fails
 
 If a game fails to convert and load properly on the NeoSD, it might be this tool's fault. Feel free to file an issue. But also many ROMs out on the internet do not convert properly. You need to use Neo Geo ROMs that were meant to be used with MAME. If a ROM fails to convert properly, it possibly also fails to convert on TerraOnion's official tool.
+
+## If it fails to convert your homebrew ROM
+
+Please file an issue. I definitely want to make sure this tool works well for homebrew
 
 ## Bulk conversion using scripts/convert.sh
 

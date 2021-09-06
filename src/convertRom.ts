@@ -16,7 +16,7 @@ type ConvertOptions = {
 };
 
 type ConvertCallback = (err: Error | null, resultingPath?: string) => void;
-type FilesInMemory = { [key: string]: Buffer };
+type FilesInMemory = Record<string, Uint8Array>;
 type FileTypes =
     | "p"
     | "s"
@@ -42,7 +42,7 @@ type FileTypes =
  * @returns {FilesInMemory} an object containing the binary data of each file
  */
 function loadFilesIntoMemory(dir: string): FilesInMemory {
-    return fs.readdirSync(dir).reduce((building, file) => {
+    return fs.readdirSync(dir).reduce<FilesInMemory>((building, file) => {
         // lots of roms have an html file inside
         if (
             file
@@ -70,12 +70,12 @@ function loadFilesIntoMemory(dir: string): FilesInMemory {
             return building;
         }
 
-        const fileData = fs.readFileSync(fullPath);
+        const fileData = new Uint8Array(fs.readFileSync(fullPath));
 
         building[file] = fileData;
 
         return building;
-    }, {} as FilesInMemory);
+    }, {});
 }
 
 /**
@@ -135,30 +135,25 @@ function getSize(files: FilesInMemory, fileType: FileTypes): number {
  *
  * @param {FilesInMemory} files a game loaded into memory
  * @param {FileTypes} fileType the fileType to get the data for
- * @returns {Buffer} a binary buffer of all the matching data
+ * @returns {Uint8Array} a binary array of all the matching data
  */
 function getData(
     files: FilesInMemory,
     fileType: FileTypes,
     numberIncluded: boolean = false
-): Buffer {
-    let size = 0;
-
-    const buffers = Object.keys(files)
+): Uint8Array {
+    return Object.keys(files)
         .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()))
-        .reduce((buildingBuffers, fileName) => {
+        .reduce<Uint8Array>((building, fileName) => {
             const lowerName = fileName.toLowerCase();
 
             if (isFileOfType(lowerName, fileType, numberIncluded)) {
-                console.log("getData, file", fileName);
-                size += files[fileName].length;
-                return buildingBuffers.concat(files[fileName]);
+                const toConcat = files[fileName];
+                return new Uint8Array([...building, ...toConcat]);
             } else {
-                return buildingBuffers;
+                return building;
             }
-        }, [] as Buffer[]);
-
-    return Buffer.concat(buffers, size);
+        }, new Uint8Array());
 }
 
 /**
@@ -194,11 +189,11 @@ function getVSizes(files: FilesInMemory) {
  * It will handle whether the game is a v1/v2 or v style game
  *
  * @param {FilesInMemory} files a game loaded into memory
- * @returns {Buffer} the game's V ROM data
+ * @returns {Uint8Array} the game's V ROM data
  */
-function getVData(files: FilesInMemory): Buffer {
-    let v2Data = getData(files, "v2");
+function getVData(files: FilesInMemory): Uint8Array {
     let v1Data = getData(files, "v1");
+    let v2Data = getData(files, "v2");
 
     if (v1Data.length === 0) {
         v1Data = getData(files, "v");
@@ -207,36 +202,36 @@ function getVData(files: FilesInMemory): Buffer {
     v1Data = padToNearest(v1Data, SIXTY_FOUR_KB);
     v2Data = padToNearest(v2Data, SIXTY_FOUR_KB);
 
-    return Buffer.concat([v1Data, v2Data], v1Data.length + v2Data.length);
+    return new Uint8Array([...v1Data, ...v2Data]);
 }
 
 /**
- * Takes a given buffer and interleaves its bytes, grabbing bytes from the first
+ * Takes a given array and interleaves its bytes, grabbing bytes from the first
  * half then the second half of the buffer.
  *
  * This is used to interleave C ROM data, as the .neo format requires it to be interleaved
  *
- * @param {Buffer} twoBankBuffer the input buffer to interleave
+ * @param {Uint8Array} twoBankArray the input array to interleave
  * @param {number} [leafSize] how big the interleaves should be
- * @returns {Buffer} the interleaved buffer
+ * @returns {Uint8Array} the interleaved array
  */
-function interleave(twoBankBuffer: Buffer, leafSize: number): Buffer {
-    const interleavedBuffer = Buffer.alloc(twoBankBuffer.length);
-    const halfLength = twoBankBuffer.length / 2;
+function interleave(twoBankArray: Uint8Array, leafSize: number): Uint8Array {
+    const interleavedArray = new Uint8Array(twoBankArray.length);
+    const halfLength = twoBankArray.length / 2;
 
     let ilbi = 0;
 
     for (let i = 0; i < halfLength; i += leafSize) {
         for (let f = 0; f < leafSize; ++f) {
-            interleavedBuffer[ilbi] = twoBankBuffer[i + f];
-            interleavedBuffer[ilbi + leafSize] =
-                twoBankBuffer[i + halfLength + f];
+            interleavedArray[ilbi] = twoBankArray[i + f];
+            interleavedArray[ilbi + leafSize] =
+                twoBankArray[i + halfLength + f];
         }
 
         ilbi += leafSize * 2;
     }
 
-    return interleavedBuffer;
+    return interleavedArray;
 }
 
 /**
@@ -248,10 +243,10 @@ function interleave(twoBankBuffer: Buffer, leafSize: number): Buffer {
  * c1, c2, c1, c2, c1, c2 ... , c3, c4, c3, c4, ...
  *
  * @param {FilesInMemory} files a game loaded into memory
- * @returns {Buffer} a buffer containing all of the game's C ROM data
+ * @returns {Uint8Array} an array containing all of the game's C ROM data
  */
-function getCData(files: FilesInMemory): Buffer {
-    const buffers = [];
+function getCData(files: FilesInMemory): Uint8Array {
+    const arrays = [];
     let totalSize = 0;
 
     let index = 1;
@@ -259,12 +254,12 @@ function getCData(files: FilesInMemory): Buffer {
     let evenData = getData(files, `c${index + 1}` as FileTypes, true);
 
     while (oddData.length > 0) {
-        const cRomPairNotInterleaved = Buffer.concat(
-            [oddData, evenData],
-            oddData.length + evenData.length
-        );
+        const cRomPairNotInterleaved = new Uint8Array([
+            ...oddData,
+            ...evenData
+        ]);
         const interleaved = interleave(cRomPairNotInterleaved, 1);
-        buffers.push(interleaved);
+        arrays.push(interleaved);
         totalSize += interleaved.length;
 
         index += 2;
@@ -272,27 +267,31 @@ function getCData(files: FilesInMemory): Buffer {
         evenData = getData(files, `c${index + 1}` as FileTypes, true);
     }
 
-    return Buffer.concat(buffers, totalSize);
+    return arrays.reduce<Uint8Array>((building, a, i) => {
+        return new Uint8Array([...building, ...a]);
+    }, new Uint8Array());
 }
 
 /**
- * Takes a buffer that is 2 megabytes in size and swaps the megabytes.
+ * Takes an array that is 2 megabytes in size and swaps the megabytes.
  * This is required for large P ROMs, such as in King of Fighters 94. The Neo Geo
  * can only address 1 meg of P ROM data at once, so the game will bank switch the two megs.
  * It turns out the second meg needs to get written to the .neo file first.
  *
- * @param {Buffer} data the buffer to swap the megs on
- * @returns {Buffer} a buffer with data's megs swapped
+ * @param {Uint8Array} data the array to swap the megs on
+ * @returns {Uint8Array} an array with data's megs swapped
  */
-function swapMegs(data: Buffer): Buffer {
+function swapMegs(data: Uint8Array): Uint8Array {
     if (data.length !== TWO_MEGS) {
         throw new Error("swapMegs: asked to swap something that is not 2mib");
     }
 
-    const firstMeg = Buffer.from(data.buffer, 0, ONE_MEG);
-    const secondMeg = Buffer.from(data.buffer, ONE_MEG, ONE_MEG);
+    const asArray = Array.from(data);
 
-    return Buffer.concat([secondMeg, firstMeg], TWO_MEGS);
+    const firstMeg = asArray.slice(0, ONE_MEG);
+    const secondMeg = asArray.slice(ONE_MEG, TWO_MEGS);
+
+    return new Uint8Array([...firstMeg, ...secondMeg]);
 }
 
 function roundUpToNearest(value: number, multiple: number): number {
@@ -305,18 +304,16 @@ function roundUpToNearest(value: number, multiple: number): number {
     return value + amountToAdd;
 }
 
-function padToNearest(data: Buffer, byteMultiple: number): Buffer {
+function padToNearest(data: Uint8Array, byteMultiple: number): Uint8Array {
     const amountToPad = byteMultiple - (data.length % byteMultiple);
 
     if (amountToPad === byteMultiple) {
         return data;
     }
 
-    const padding = Buffer.from(
-        Uint32Array.from(new Array(amountToPad).fill(0xff, 0, amountToPad))
-    );
+    const padding = new Array(amountToPad).fill(0xff, 0, amountToPad);
 
-    return Buffer.concat([data, padding], data.length + padding.length);
+    return new Uint8Array([...data, ...padding]);
 }
 
 /**
@@ -326,9 +323,9 @@ function padToNearest(data: Buffer, byteMultiple: number): Buffer {
  * see: https://forums.terraonion.com/viewtopic.php?f=9&p=3342#p3342
  *
  * @param {FilesInMemory} files a game loaded into memory
- * @returns {Buffer} the P ROM data for the game
+ * @returns {Uint8Array} the P ROM data for the game
  */
-function getPData(files: FilesInMemory): Buffer {
+function getPData(files: FilesInMemory): Uint8Array {
     let pData = getData(files, "p");
 
     if (pData.length === TWO_MEGS) {
@@ -393,12 +390,19 @@ function getNGHNumber(rawNGHInput: string | undefined): number {
     return 0;
 }
 
+function stringToUint8Array(s: string): Uint8Array {
+    return new Uint8Array(s.split("").map(c => c.charCodeAt(0)));
+}
+
 /**
  * The main orchestrator for building a .neo file.
  */
-function buildNeoFile(options: ConvertOptions, files: FilesInMemory): Buffer {
+function buildNeoFile(
+    options: ConvertOptions,
+    files: FilesInMemory
+): Uint8Array {
     // NEO1 : uint8_t header1, header2, header3, version;
-    const tag = Buffer.from([
+    const tag = new Uint8Array([
         "N".charCodeAt(0),
         "E".charCodeAt(0),
         "O".charCodeAt(0),
@@ -420,8 +424,9 @@ function buildNeoFile(options: ConvertOptions, files: FilesInMemory): Buffer {
     console.log("V data length", vData.length);
 
     // PSize, SSize, MSize, V1Size, V2Size, CSize
-    const sizes = Buffer.from(
-        Uint32Array.from([
+    // each size value is 4 bytes, so pack a 32 bit array into an 8 bit array
+    const sizes = new Uint8Array(
+        new Uint32Array([
             pData.length,
             sData.length,
             mData.length,
@@ -435,53 +440,54 @@ function buildNeoFile(options: ConvertOptions, files: FilesInMemory): Buffer {
     const screenshot = getScreenshotNumber(options.screenshot);
     const NGH = getNGHNumber(options.ngh);
 
-    const metadata = Buffer.from(
-        Uint32Array.from([options.year, options.genre, screenshot, NGH]).buffer
+    // each value is 4 bytes, so pack a 32 bit array into an 8 bit array
+    const metadata = new Uint8Array(
+        new Uint32Array([options.year, options.genre, screenshot, NGH]).buffer
     );
 
-    const name = Buffer.from(options.name);
-    const namePadding = Buffer.from(
-        new Array(33 - options.name.length).fill(0, 0, 33 - options.name.length)
+    const name = stringToUint8Array(options.name);
+
+    const namePadding = new Array(33 - options.name.length).fill(
+        0,
+        0,
+        33 - options.name.length
     );
 
-    const manufacturer = Buffer.from(options.manufacturer);
+    const manufacturer = stringToUint8Array(options.manufacturer);
+
     const manLength = options.manufacturer.length;
-    const manufacturerPadding = Buffer.from(
-        new Array(17 - manLength).fill(0, 0, 17 - manLength)
+    const manufacturerPadding = new Array(17 - manLength).fill(
+        0,
+        0,
+        17 - manLength
     );
 
     const fillerLength = 128 + 290 + 4096 - 512;
-    const filler = Buffer.from(
-        new Array(fillerLength).fill(0, 0, fillerLength)
-    );
+    const filler = new Array(fillerLength).fill(0, 0, fillerLength);
 
     console.log("tag.length", tag.length);
     console.log("sizes.length", sizes.length);
     console.log("metadata.length", metadata.length);
     console.log("name offset", tag.length + sizes.length + metadata.length);
-    const header = Buffer.concat(
-        [
-            tag,
-            sizes,
-            metadata,
-            name,
-            namePadding,
-            manufacturer,
-            manufacturerPadding,
-            filler
-        ],
-        4096
-    );
+    const header = new Uint8Array([
+        ...tag,
+        ...sizes,
+        ...metadata,
+        ...name,
+        ...namePadding,
+        ...manufacturer,
+        ...manufacturerPadding,
+        ...filler
+    ]);
 
-    const neoFile = Buffer.concat(
-        [header, pData, sData, mData, vData, cData],
-        header.length +
-            pData.length +
-            sData.length +
-            mData.length +
-            vData.length +
-            cData.length
-    );
+    const neoFile = new Uint8Array([
+        ...header,
+        ...pData,
+        ...sData,
+        ...mData,
+        ...vData,
+        ...cData
+    ]);
 
     console.log("neoFile.length", neoFile.length);
 

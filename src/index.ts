@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 
-import program from "commander";
+import { Command } from "commander";
 import path from "path";
 import fs from "fs";
 import { Genre } from "./genres";
 import { convertRom } from "./convertRom";
 
 const packageJson = require("../package.json");
+
+const program = new Command();
 
 program
     .version(packageJson.version)
@@ -29,12 +31,14 @@ program
     )
     .parse(process.argv);
 
-if (!program.input || !program.dest) {
+const programOptions = program.opts();
+
+if (!programOptions.input || !programOptions.dest) {
     program.help();
 }
 
-const srcDir = path.resolve(process.cwd(), program.input);
-const destPath = path.resolve(process.cwd(), program.dest || "");
+const srcDir = path.resolve(process.cwd(), programOptions.input);
+const destPath = path.resolve(process.cwd(), programOptions.dest || "");
 
 if (!fs.existsSync(srcDir)) {
     console.error(`No directory found at ${srcDir}`);
@@ -52,12 +56,12 @@ if (!fs.existsSync(path.dirname(destPath))) {
 }
 
 const options = {
-    name: program.gameName || path.basename(destPath, path.extname(destPath)),
-    year: parseInt(program.year || new Date().getFullYear(), 10),
-    manufacturer: program.manufacturer || "SNK",
-    genre: Genre[program.genre || "Other"],
-    ngh: program.ngh,
-    screenshot: program.screenshot,
+    name: programOptions.gameName || path.basename(destPath, path.extname(destPath)),
+    year: parseInt(programOptions.year || new Date().getFullYear(), 10),
+    manufacturer: programOptions.manufacturer || "SNK",
+    genre: Genre[programOptions.genre || "Other"],
+    ngh: programOptions.ngh,
+    screenshot: programOptions.screenshot,
 };
 
 if (options.genre === undefined) {

@@ -16,7 +16,7 @@ type ConvertOptions = {
 };
 
 type ConvertCallback = (err: Error | null, resultingPath?: string) => void;
-type FilesInMemory = { [key: string]: Buffer };
+type FilesInMemory = { [key: string]: Buffer       };
 type FileTypes =
     | "p"
     | "s"

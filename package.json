@@ -28,19 +28,19 @@
   },
   "homepage": "https://github.com/city41/neosdconv#readme",
   "dependencies": {
-    "commander": "^2.19.0",
-    "extract-zip": "^1.6.7",
-    "tmp": "0.0.33"
+    "commander": "^8.1.0",
+    "extract-zip": "^2.0.1",
+    "tmp": "^0.2.1"
   },
   "devDependencies": {
     "@types/commander": "^2.12.2",
-    "@types/extract-zip": "^1.6.2",
-    "@types/node": "^10.12.18",
-    "@types/tmp": "0.0.33",
-    "husky": "^1.2.1",
-    "prettier": "^1.15.3",
-    "pretty-quick": "^1.8.0",
-    "ts-node": "^7.0.1",
-    "typescript": "^3.2.2"
+    "@types/extract-zip": "^2.0.1",
+    "@types/node": "^16.7.11",
+    "@types/tmp": "^0.2.1",
+    "husky": "^7.0.2",
+    "prettier": "^2.3.2",
+    "pretty-quick": "^3.1.1",
+    "ts-node": "^10.2.1",
+    "typescript": "^4.4.2"
   }
 }

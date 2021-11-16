@@ -56,4 +56,32 @@ Your system needs neosdconv installed (see above), as well as sh or bash, unzip,
 
 The script is flexible on the locations of the input roms, output folder and the location of the csv file. For more information, run `convert.sh` without any arguments for help.
 
+## Dump a .neo file's header
 
+Added in version 0.3.0
+
+`neosdconv -d <neo file>`
+
+for example
+
+`neosdconv -d mslug.neo`
+
+It will print out a listing like this
+
+```bash
+Metal Slug - Super Vehicle-001
+----------------------
+manufacturer: Nazca
+        year: 1996
+       genre: Action
+         NGH: 21
+  screenshot: 99
+
+---- ROM sizes -------
+            p: 2097152      0x200000
+            s: 131072       0x20000
+            m: 131072       0x20000
+           v1: 8388608      0x800000
+           v2: 0            0x0
+            c: 16777216     0x1000000
+```

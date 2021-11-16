@@ -3,7 +3,8 @@
 import { Command } from "commander";
 import path from "path";
 import fs from "fs";
-import { Genre } from "./genres";
+import { Genre, GenreKey } from "./genres";
+import { dumpHeader } from "./dumpHeader";
 import { convertRom } from "./convertRom";
 
 const packageJson = require("../package.json");
@@ -29,12 +30,19 @@ program
         "-s, --screenshot <screenshot>",
         "The game's NeoSD screenshot number"
     )
+    .option("-d, --dump <.neo file>", "Prints metadata for the given .neo file")
     .parse(process.argv);
 
 const programOptions = program.opts();
 
-if (!programOptions.input || !programOptions.dest) {
+if ((!programOptions.input || !programOptions.dest) && !programOptions.dump) {
     program.help();
+}
+
+if (programOptions.dump) {
+    const neoPath = path.resolve(process.cwd(), programOptions.dump);
+    dumpHeader(neoPath);
+    process.exit(0);
 }
 
 const srcDir = path.resolve(process.cwd(), programOptions.input);
@@ -56,12 +64,14 @@ if (!fs.existsSync(path.dirname(destPath))) {
 }
 
 const options = {
-    name: programOptions.gameName || path.basename(destPath, path.extname(destPath)),
+    name:
+        programOptions.gameName ||
+        path.basename(destPath, path.extname(destPath)),
     year: parseInt(programOptions.year || new Date().getFullYear(), 10),
     manufacturer: programOptions.manufacturer || "SNK",
-    genre: Genre[programOptions.genre || "Other"],
+    genre: Genre[(programOptions.genre as GenreKey) || "Other"],
     ngh: programOptions.ngh,
-    screenshot: programOptions.screenshot,
+    screenshot: programOptions.screenshot
 };
 
 if (options.genre === undefined) {

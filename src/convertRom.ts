@@ -16,7 +16,7 @@ type ConvertOptions = {
 };
 
 type ConvertCallback = (err: Error | null, resultingPath?: string) => void;
-type FilesInMemory = { [key: string]: Buffer       };
+type FilesInMemory = { [key: string]: Buffer };
 type FileTypes =
     | "p"
     | "s"
@@ -44,12 +44,22 @@ type FileTypes =
 function loadFilesIntoMemory(dir: string): FilesInMemory {
     return fs.readdirSync(dir).reduce((building, file) => {
         // lots of roms have an html file inside
-        if (file.trim().toLowerCase().endsWith(".html")) {
+        if (
+            file
+                .trim()
+                .toLowerCase()
+                .endsWith(".html")
+        ) {
             return building;
         }
 
         // extracting a zipped rom into the same directory is common
-        if (file.trim().toLowerCase().endsWith(".zip")) {
+        if (
+            file
+                .trim()
+                .toLowerCase()
+                .endsWith(".zip")
+        ) {
             return building;
         }
 
@@ -169,12 +179,12 @@ function getVSizes(files: FilesInMemory) {
 
         return {
             v1: roundUpToNearest(v1Size, SIXTY_FOUR_KB),
-            v2: roundUpToNearest(v2Size, SIXTY_FOUR_KB),
+            v2: roundUpToNearest(v2Size, SIXTY_FOUR_KB)
         };
     } else {
         return {
             v1: roundUpToNearest(getSize(files, "v"), SIXTY_FOUR_KB),
-            v2: 0,
+            v2: 0
         };
     }
 }
@@ -392,7 +402,7 @@ function buildNeoFile(options: ConvertOptions, files: FilesInMemory): Buffer {
         "N".charCodeAt(0),
         "E".charCodeAt(0),
         "O".charCodeAt(0),
-        1,
+        1
     ]);
 
     const vSizes = getVSizes(files);
@@ -417,7 +427,7 @@ function buildNeoFile(options: ConvertOptions, files: FilesInMemory): Buffer {
             mData.length,
             vSizes.v1,
             vSizes.v2,
-            cData.length,
+            cData.length
         ]).buffer
     );
 
@@ -445,6 +455,10 @@ function buildNeoFile(options: ConvertOptions, files: FilesInMemory): Buffer {
         new Array(fillerLength).fill(0, 0, fillerLength)
     );
 
+    console.log("tag.length", tag.length);
+    console.log("sizes.length", sizes.length);
+    console.log("metadata.length", metadata.length);
+    console.log("name offset", tag.length + sizes.length + metadata.length);
     const header = Buffer.concat(
         [
             tag,
@@ -454,7 +468,7 @@ function buildNeoFile(options: ConvertOptions, files: FilesInMemory): Buffer {
             namePadding,
             manufacturer,
             manufacturerPadding,
-            filler,
+            filler
         ],
         4096
     );

@@ -6,6 +6,10 @@ A tool to convert a Neo Geo ROM into TerraOnion's NeoSD `.neo` format.
 
 This tool should successfully convert any commercial game now. It should also convert any homebrew ROM, originally homebrew dev was the main purpose of this tool.
 
+### A note on Cabal
+
+As of this writing, Cabal does not convert correctly. However, this is true of TerraOnion's own NeoBuilder as well. So for now, assuming Cabal does something odd the NeoSD isn't expecting. As more is learned, I'll update neosdconv accordingly.
+
 ## How to Use
 
 You need NodeJS installed, I am using version 8.9.4

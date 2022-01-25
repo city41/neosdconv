@@ -1,6 +1,6 @@
 {
     "name": "neosdconv",
-    "version": "0.4.2",
+    "version": "0.3.0",
     "description": "",
     "files": [
         "lib"
@@ -15,7 +15,7 @@
         "build": "tsc",
         "type-check": "tsc --noEmit",
         "start": "ts-node ./src/index.ts",
-        "prepublish": "yarn build"
+        "prepublish": "npm run build"
     },
     "repository": {
         "type": "git",

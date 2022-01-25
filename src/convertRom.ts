@@ -522,4 +522,4 @@ function convertRom(
     });
 }
 
-export { convertRom };
+export { buildNeoFile, convertRom };

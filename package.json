@@ -15,7 +15,7 @@
         "build": "tsc",
         "type-check": "tsc --noEmit",
         "start": "ts-node ./src/index.ts",
-        "prepublish": "npm run build"
+        "prepublish": "yarn build"
     },
     "repository": {
         "type": "git",

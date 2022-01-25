@@ -244,7 +244,7 @@ function swapMegs(data: Uint8Array): Uint8Array {
     const firstMeg = asArray.slice(0, ONE_MEG);
     const secondMeg = asArray.slice(ONE_MEG, TWO_MEGS);
 
-    return new Uint8Array([...firstMeg, ...secondMeg]);
+    return new Uint8Array([...secondMeg, ...firstMeg]);
 }
 
 function roundUpToNearest(value: number, multiple: number): number {

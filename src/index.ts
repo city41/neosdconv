@@ -5,7 +5,7 @@ import path from "path";
 import fs from "fs";
 import { Genre, GenreKey } from "./genres";
 import { dumpHeader } from "./dumpHeader";
-import { convertRom } from "./convertRom";
+import { convertRomNode as convertRom } from "./convertRomNode";
 
 const packageJson = require("../package.json");
 

@@ -1,5 +1,7 @@
 # neosdconv
 
+[![No Maintenance Intended](http://unmaintained.tech/badge.svg)](http://unmaintained.tech/)
+
 A tool to convert a Neo Geo ROM into TerraOnion's NeoSD `.neo` format.
 
 # Unsupported

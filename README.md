@@ -2,6 +2,12 @@
 
 A tool to convert a Neo Geo ROM into TerraOnion's NeoSD `.neo` format.
 
+# Unsupported
+
+This tool is no longer supported. I will not accept pull requests or look into issues. The reason is TerraOnion's own NeoBuilder runs just fine with Wine, and has a command line mode. That makes neosdconv obsolete.
+
+Original README follows...
+
 ## Status
 
 This tool should successfully convert any commercial game now. It should also convert any homebrew ROM, originally homebrew dev was the main purpose of this tool.

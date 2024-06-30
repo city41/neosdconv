@@ -1,10 +1,10 @@
 # neosdconv
 
-A tool to convert homebrew Neo Geo ROM into TerraOnion's NeoSD `.neo` format.
+A tool to convert homebrew Neo Geo ROMs into TerraOnion's NeoSD `.neo` format. This allows the program to run on real hardware via a NeoSD as well as on the MiSTer.
 
 # Homebrew/dev only
 
-This tool is intended to be used by those doing Neo Geo related development. For commercial roms please use TerraOnion's NeoBuilder.
+This tool is only intended to be used by those doing Neo Geo related development. For commercial roms please use TerraOnion's NeoBuilder. Issues, support, etc, around commercial games will not be considered. 
 
 ## How to Use
 

@@ -4,8 +4,6 @@ import path from "path";
 import { buildNeoFile } from "./buildNeoFile";
 import type { ConvertOptions, FilesInMemory } from "./buildNeoFile";
 
-type ConvertCallback = (err: Error | null, resultingPath?: string) => void;
-
 /**
  * Takes the various ROM files (p, m, c, etc) found in the specified directory
  * and loads them into memory. The return result is an object with keys being the

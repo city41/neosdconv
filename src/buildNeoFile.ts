@@ -1,4 +1,3 @@
-
 const SIXTY_FOUR_KB = 64 * 1024;
 const TWO_FIFTY_SIX_KB = 256 * 1024;
 const ONE_MEG = 0x100000;
@@ -29,7 +28,6 @@ type FileTypes =
     | "c6"
     | "c7"
     | "c8";
-
 
 /**
  * Confirms whether the given file name matches the requested ROM type.
@@ -127,12 +125,12 @@ function getVSizes(files: FilesInMemory) {
 
         return {
             v1: roundUpToNearest(v1Size, SIXTY_FOUR_KB),
-            v2: roundUpToNearest(v2Size, SIXTY_FOUR_KB)
+            v2: roundUpToNearest(v2Size, SIXTY_FOUR_KB),
         };
     } else {
         return {
             v1: roundUpToNearest(getSize(files, "v"), SIXTY_FOUR_KB),
-            v2: 0
+            v2: 0,
         };
     }
 }
@@ -209,7 +207,7 @@ function getCData(files: FilesInMemory): Uint8Array {
     while (oddData.length > 0) {
         const cRomPairNotInterleaved = new Uint8Array([
             ...oddData,
-            ...evenData
+            ...evenData,
         ]);
         const interleaved = interleave(cRomPairNotInterleaved, 1);
         arrays.push(interleaved);
@@ -314,11 +312,6 @@ function getScreenshotNumber(rawScreenshotInput: string | undefined): number {
 /**
  * Convert the raw NGH input from the command line into a value that can be stored
  * in the metadata section.
- *
- * NOTE: TerraOnion stores this rather strangely. They store the decimal value as if it is
- * hex. So for example, RBFF's NGH number is decimal 95, and in the .neo file it is stored as
- * '95 00 00 00'. Or take Neo Turf Masters, NGH is decimal 200, stored in the .neo file as '00 02 00 00'
- * Very strange, but I guess it makes looking at the value in a hex editor easier? who knows
  */
 function getNGHNumber(rawNGHInput: string | undefined): number {
     if (rawNGHInput === undefined) {
@@ -344,7 +337,7 @@ function getNGHNumber(rawNGHInput: string | undefined): number {
 }
 
 function stringToUint8Array(s: string): Uint8Array {
-    return new Uint8Array(s.split("").map(c => c.charCodeAt(0)));
+    return new Uint8Array(s.split("").map((c) => c.charCodeAt(0)));
 }
 
 /**
@@ -359,7 +352,7 @@ function buildNeoFile(
         "N".charCodeAt(0),
         "E".charCodeAt(0),
         "O".charCodeAt(0),
-        1
+        1,
     ]);
 
     const vSizes = getVSizes(files);
@@ -385,7 +378,7 @@ function buildNeoFile(
             mData.length,
             vSizes.v1,
             vSizes.v2,
-            cData.length
+            cData.length,
         ]).buffer
     );
 
@@ -430,7 +423,7 @@ function buildNeoFile(
         ...namePadding,
         ...manufacturer,
         ...manufacturerPadding,
-        ...filler
+        ...filler,
     ]);
 
     const neoFile = new Uint8Array([
@@ -439,7 +432,7 @@ function buildNeoFile(
         ...sData,
         ...mData,
         ...vData,
-        ...cData
+        ...cData,
     ]);
 
     console.log("neoFile.length", neoFile.length);
@@ -449,4 +442,3 @@ function buildNeoFile(
 
 export { buildNeoFile };
 export type { ConvertOptions, FilesInMemory };
-

@@ -16,7 +16,6 @@ type ConvertOptions = {
     screenshot?: string;
 };
 
-type ConvertCallback = (err: Error | null, resultingPath?: string) => void;
 type FilesInMemory = { [key: string]: Buffer };
 type FileTypes =
     | "p"
@@ -355,11 +354,6 @@ function getScreenshotNumber(rawScreenshotInput: string | undefined): number {
 /**
  * Convert the raw NGH input from the command line into a value that can be stored
  * in the metadata section.
- *
- * NOTE: TerraOnion stores this rather strangely. They store the decimal value as if it is
- * hex. So for example, RBFF's NGH number is decimal 95, and in the .neo file it is stored as
- * '95 00 00 00'. Or take Neo Turf Masters, NGH is decimal 200, stored in the .neo file as '00 02 00 00'
- * Very strange, but I guess it makes looking at the value in a hex editor easier? who knows
  */
 function getNGHNumber(rawNGHInput: string | undefined): number {
     if (rawNGHInput === undefined) {
@@ -391,7 +385,7 @@ async function wait(ms: number): Promise<void> {
 /**
  * The main orchestrator for building a .neo file.
  */
-async function buildNeoFile(
+export async function buildNeoFile(
     options: ConvertOptions,
     files: FilesInMemory
 ): Promise<Buffer> {

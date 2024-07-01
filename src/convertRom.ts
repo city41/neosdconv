@@ -1,4 +1,5 @@
 import fs from "fs";
+import fsp from "fs/promises";
 import path from "path";
 
 const SIXTY_FOUR_KB = 64 * 1024;
@@ -44,22 +45,12 @@ type FileTypes =
 function loadFilesIntoMemory(dir: string): FilesInMemory {
     return fs.readdirSync(dir).reduce((building, file) => {
         // lots of roms have an html file inside
-        if (
-            file
-                .trim()
-                .toLowerCase()
-                .endsWith(".html")
-        ) {
+        if (file.trim().toLowerCase().endsWith(".html")) {
             return building;
         }
 
         // extracting a zipped rom into the same directory is common
-        if (
-            file
-                .trim()
-                .toLowerCase()
-                .endsWith(".zip")
-        ) {
+        if (file.trim().toLowerCase().endsWith(".zip")) {
             return building;
         }
 
@@ -179,12 +170,12 @@ function getVSizes(files: FilesInMemory) {
 
         return {
             v1: roundUpToNearest(v1Size, SIXTY_FOUR_KB),
-            v2: roundUpToNearest(v2Size, SIXTY_FOUR_KB)
+            v2: roundUpToNearest(v2Size, SIXTY_FOUR_KB),
         };
     } else {
         return {
             v1: roundUpToNearest(getSize(files, "v"), SIXTY_FOUR_KB),
-            v2: 0
+            v2: 0,
         };
     }
 }
@@ -393,31 +384,51 @@ function getNGHNumber(rawNGHInput: string | undefined): number {
     return 0;
 }
 
+async function wait(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 /**
  * The main orchestrator for building a .neo file.
  */
-function buildNeoFile(options: ConvertOptions, files: FilesInMemory): Buffer {
+async function buildNeoFile(
+    options: ConvertOptions,
+    files: FilesInMemory
+): Promise<Buffer> {
     // NEO1 : uint8_t header1, header2, header3, version;
     const tag = Buffer.from([
         "N".charCodeAt(0),
         "E".charCodeAt(0),
         "O".charCodeAt(0),
-        1
+        1,
     ]);
+
+    // these waits are throughout the function to spread the building across
+    // numerous event loop cycles. This avoids "browser is busy" warnings in web browsers.
+    await wait(1);
 
     const vSizes = getVSizes(files);
 
     const cData = padToNearest(getCData(files), TWO_FIFTY_SIX_KB);
     console.log("C data length", cData.length);
+    await wait(1);
+
     const pData = padToNearest(getPData(files), SIXTY_FOUR_KB);
     console.log("P data length", pData.length);
+    await wait(1);
+
     const sData = padToNearest(getData(files, "s"), SIXTY_FOUR_KB);
     console.log("S data length", sData.length);
+    await wait(1);
+
     const mData = padToNearest(getData(files, "m"), SIXTY_FOUR_KB);
     console.log("M data length", mData.length);
+    await wait(1);
+
     // getVData pads to 64kb
     const vData = getVData(files);
     console.log("V data length", vData.length);
+    await wait(1);
 
     // PSize, SSize, MSize, V1Size, V2Size, CSize
     const sizes = Buffer.from(
@@ -427,9 +438,11 @@ function buildNeoFile(options: ConvertOptions, files: FilesInMemory): Buffer {
             mData.length,
             vSizes.v1,
             vSizes.v2,
-            cData.length
+            cData.length,
         ]).buffer
     );
+
+    await wait(1);
 
     // year, genre, screenshot, NGH
     const screenshot = getScreenshotNumber(options.screenshot);
@@ -459,6 +472,9 @@ function buildNeoFile(options: ConvertOptions, files: FilesInMemory): Buffer {
     console.log("sizes.length", sizes.length);
     console.log("metadata.length", metadata.length);
     console.log("name offset", tag.length + sizes.length + metadata.length);
+
+    await wait(1);
+
     const header = Buffer.concat(
         [
             tag,
@@ -468,10 +484,12 @@ function buildNeoFile(options: ConvertOptions, files: FilesInMemory): Buffer {
             namePadding,
             manufacturer,
             manufacturerPadding,
-            filler
+            filler,
         ],
         4096
     );
+
+    await wait(1);
 
     const neoFile = Buffer.concat(
         [header, pData, sData, mData, vData, cData],
@@ -497,23 +515,18 @@ function buildNeoFile(options: ConvertOptions, files: FilesInMemory): Buffer {
  * @param {ConvertOptions} options settings such as game name and year
  * @param {ConvertCallback} callback called once the conversion is done
  */
-function convertRom(
+async function convertRom(
     srcDir: string,
     outPath: string,
-    options: ConvertOptions,
-    callback: ConvertCallback
-): void {
+    options: ConvertOptions
+): Promise<string> {
     const files = loadFilesIntoMemory(srcDir);
 
-    const neoFile = buildNeoFile(options, files);
+    const neoFile = await buildNeoFile(options, files);
 
-    fs.writeFile(outPath, neoFile, (err: NodeJS.ErrnoException | null) => {
-        if (err) {
-            callback(err);
-        } else {
-            callback(null, outPath);
-        }
-    });
+    await fsp.writeFile(outPath, neoFile);
+
+    return outPath;
 }
 
 export { convertRom };

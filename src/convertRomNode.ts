@@ -1,7 +1,8 @@
 import fs from "fs";
+import fsp from "fs/promises";
 import path from "path";
-import { buildNeoFile } from './buildNeoFile';
-import type { ConvertOptions, FilesInMemory } from './buildNeoFile';
+import { buildNeoFile } from "./buildNeoFile";
+import type { ConvertOptions, FilesInMemory } from "./buildNeoFile";
 
 type ConvertCallback = (err: Error | null, resultingPath?: string) => void;
 
@@ -16,22 +17,12 @@ type ConvertCallback = (err: Error | null, resultingPath?: string) => void;
 function loadFilesIntoMemory(dir: string): FilesInMemory {
     return fs.readdirSync(dir).reduce<FilesInMemory>((building, file) => {
         // lots of roms have an html file inside
-        if (
-            file
-                .trim()
-                .toLowerCase()
-                .endsWith(".html")
-        ) {
+        if (file.trim().toLowerCase().endsWith(".html")) {
             return building;
         }
 
         // extracting a zipped rom into the same directory is common
-        if (
-            file
-                .trim()
-                .toLowerCase()
-                .endsWith(".zip")
-        ) {
+        if (file.trim().toLowerCase().endsWith(".zip")) {
             return building;
         }
 
@@ -57,23 +48,17 @@ function loadFilesIntoMemory(dir: string): FilesInMemory {
  * @param {string} srcDir the directory to read the ROM files from
  * @param {string} outPath the file to write the result to
  * @param {ConvertOptions} options settings such as game name and year
- * @param {ConvertCallback} callback called once the conversion is done
  */
-export function convertRomNode(
+export async function convertRomNode(
     srcDir: string,
     outPath: string,
-    options: ConvertOptions,
-    callback: ConvertCallback
-): void {
+    options: ConvertOptions
+): Promise<string> {
     const files = loadFilesIntoMemory(srcDir);
 
-    const neoFile = buildNeoFile(options, files);
+    const neoFile = await buildNeoFile(options, files);
 
-    fs.writeFile(outPath, neoFile, (err: NodeJS.ErrnoException | null) => {
-        if (err) {
-            callback(err);
-        } else {
-            callback(null, outPath);
-        }
-    });
+    await fsp.writeFile(outPath, neoFile);
+
+    return outPath;
 }

@@ -71,7 +71,7 @@ const options = {
     manufacturer: programOptions.manufacturer || "SNK",
     genre: Genre[(programOptions.genre as GenreKey) || "Other"],
     ngh: programOptions.ngh,
-    screenshot: programOptions.screenshot
+    screenshot: programOptions.screenshot,
 };
 
 if (options.genre === undefined) {
@@ -95,10 +95,10 @@ if (options.manufacturer.length > MAX_MANUFACTURER_LENGTH) {
     process.exit(1);
 }
 
-convertRom(srcDir, destPath, options, (err, resultingPath) => {
-    if (err) {
-        console.error("error: ", err);
-    } else {
+convertRom(srcDir, destPath, options)
+    .then((resultingPath) => {
         console.log(`${srcDir} built to ${resultingPath}`);
-    }
-});
+    })
+    .catch((err) => {
+        console.error("error: ", err);
+    });

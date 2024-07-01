@@ -340,13 +340,17 @@ function stringToUint8Array(s: string): Uint8Array {
     return new Uint8Array(s.split("").map((c) => c.charCodeAt(0)));
 }
 
+async function wait(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 /**
  * The main orchestrator for building a .neo file.
  */
-function buildNeoFile(
+async function buildNeoFile(
     options: ConvertOptions,
     files: FilesInMemory
-): Uint8Array {
+): Promise<Uint8Array> {
     // NEO1 : uint8_t header1, header2, header3, version;
     const tag = new Uint8Array([
         "N".charCodeAt(0),
@@ -355,19 +359,32 @@ function buildNeoFile(
         1,
     ]);
 
+    // these waits are throughout the function to spread the building across
+    // numerous event loop cycles. This avoids "browser is busy" warnings in web browsers.
+    await wait(1);
+
     const vSizes = getVSizes(files);
 
     const cData = padToNearest(getCData(files), TWO_FIFTY_SIX_KB);
     console.log("C data length", cData.length);
+    await wait(1);
+
     const pData = padToNearest(getPData(files), SIXTY_FOUR_KB);
     console.log("P data length", pData.length);
+    await wait(1);
+
     const sData = padToNearest(getData(files, "s"), SIXTY_FOUR_KB);
     console.log("S data length", sData.length);
+    await wait(1);
+
     const mData = padToNearest(getData(files, "m"), SIXTY_FOUR_KB);
     console.log("M data length", mData.length);
+    await wait(1);
+
     // getVData pads to 64kb
     const vData = getVData(files);
     console.log("V data length", vData.length);
+    await wait(1);
 
     // PSize, SSize, MSize, V1Size, V2Size, CSize
     // each size value is 4 bytes, so pack a 32 bit array into an 8 bit array
@@ -415,6 +432,8 @@ function buildNeoFile(
     console.log("sizes.length", sizes.length);
     console.log("metadata.length", metadata.length);
     console.log("name offset", tag.length + sizes.length + metadata.length);
+    await wait(1);
+
     const header = new Uint8Array([
         ...tag,
         ...sizes,
@@ -425,6 +444,8 @@ function buildNeoFile(
         ...manufacturerPadding,
         ...filler,
     ]);
+
+    await wait(1);
 
     const neoFile = new Uint8Array([
         ...header,

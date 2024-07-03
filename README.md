@@ -4,11 +4,11 @@ A tool to convert homebrew Neo Geo ROMs into TerraOnion's NeoSD `.neo` format. T
 
 # Homebrew/dev only
 
-This tool is only intended to be used by those doing Neo Geo related development. For commercial roms please use TerraOnion's NeoBuilder. Issues, support, etc, around commercial games will not be considered. 
+This tool is only intended to be used by those doing Neo Geo related development. For commercial games please use TerraOnion's NeoBuilder. Issues, support, etc, around commercial games will not be considered.
 
 ## How to Use
 
-You need NodeJS installed, I am using version 8.9.4
+You need NodeJS installed, at least Node 14. I am using Node 18.18.2.
 
 1. `npm install -g neosdconv`
 2. `neosdconv -i <directory with your ROM files> -o <output file> -n <game name> -g <genre> -y <year> -m <manufacturer> -# <NGH number> -s <screenshot number>`
@@ -17,7 +17,7 @@ The input directory is a directory containing your game's raw P, S, M, V and C R
 
 The output path is something like `./mygame.neo`.
 
-For example: `neosdconv -i ./romFiles -o ./mygame.neo -n 'My Cool Game' -g BeatEmUp -y 2018 -m city41`
+For example: `neosdconv -i ./romFiles -o ./mygame.neo -n 'My Cool Game' -g BeatEmUp -y 2018 -m city41 -# 789`
 
 ## NGH and Screenshot
 
